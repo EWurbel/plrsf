@@ -107,7 +107,7 @@ home(_Request) :-
 				   p(['Welcome to the PLRSF demonstrator. ',
 				      'This demonstrator allows you to experiment ',
 				      'with removed set fusion of logic programs, which implements merging ',
-				      'operators over logic program.'
+				      'operators over logic programs.'
 				      ]),
 				   p(['to run the demonstrator, choose ',
 				      '"run" in the menu above. To get some help, '
@@ -134,7 +134,7 @@ helppage(_Request) :-
 				   p(['Welcome to the PLRSF demonstrator. ',
 				      'This demonstrator allows you to experiment ',
 				      'with removed set fusion operators ',
-				      'of profiles containing logic programs.'
+				      'of profiles of logic programs.'
 				      ]),
 				   p(['PLRSF is fully described in [',a([href('#bib1'),id(nh1)],'1'), '].',
 				      'It is a syntactic merging approach, which implements several merging strategies, namely:']),
