@@ -80,6 +80,13 @@ run(File,Results,[Opt]) :-
 %%	inclmin : keep inclusion-minimal potential remove sets.
 %%	prog : keep removed sets given by the optimization implemented
 %%	       in the program.
+%%	TODO : séparer (et autoriser) trois cas :
+%%	- inclmin seul : comme avant : on garde les incl-min de tous les
+%	answer sets.
+%	- prog seul : comme avant : on garde les answer sets optimisés
+%	du prog.
+%	- prog+inclmin : on garde les answer sets optimisés, et parmi
+%	ceux-ci on garde les minimaux suivants l'inclusion.
 
 post_process(InResults, OutResults,opt(none)) :-
 	filter_nonopt_results(InResults,OutResults)

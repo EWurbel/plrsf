@@ -148,23 +148,36 @@ in_body(A, (B,C)) :-
 %%	which implement the merging strategy Strat for profile Profile.
 
 % all potential removed sets
+
 gen_strategy(all, _, Rules) :-
 	% #### maybe useless in our case. (-> to check)
 	rule_atoms_exclusion(Rules)
 	.
 % inclusion-minimal potential removed sets
+% no generation is performed here. The gathering of the
+% inclusion-minimal potential removed sets is performed by
+% post-filtering the collection of potential removed sets.
+%
+% This is really inefficient !
+
 gen_strategy(inclmin, _, true).
 
 % sigma strategy
+
 gen_strategy(sigma, Profile, '#minimize' RAtoms) :-
 	collect_rule_atoms(Profile,RAtoms)
 	.
 % card strategy. (same as sigma, the removal of duplicates
 % has been performed earlier).
+
 gen_strategy(card, Profile, '#minimize' RAtoms) :-
 	collect_rule_atoms(Profile,RAtoms)
 	.
 % max strategy.
+% Be careful ! The rules generated here are not sufficient by themselve,
+% the results have to be post-filtered in order to keep only removed
+% sets which are minimal w.r.t. set inclusion regarding rsf/2 atoms.
+
 gen_strategy(max, Profile, Repr) :-
 	max_rules(Profile,M),
 	domain(possible,'U',DomPoss),
@@ -177,6 +190,10 @@ gen_strategy(max, Profile, Repr) :-
 	n_conjoin([DomPoss,Possible,Size,MaxSize,Min],Repr)
 	.
 % gmax strategy
+% Be careful ! The rules generated here are not sufficient by themselve,
+% the results have to be post-filtered in order to keep only removed
+% sets which are minimal w.r.t. set inclusion regarding rsf/2 atoms.
+
 gen_strategy(gmax, Profile, Repr) :-
 	length(Profile,N),
 	max_rules(Profile,M),

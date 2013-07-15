@@ -297,6 +297,17 @@ run_asp(TmpFile, Results) :-
 	nb_getval(strategy,inclmin), !,
 	run(TmpFile,Results,[opt(inclmin)])
 	.
+% TODO: autoriser les deux options (voirs les commentaires dans
+% post_process/2 dans asp.pl
+
+%run_asp(TmpFile, Results) :-
+%	nb_getval(strategy,max), !,
+%	run(TmpFile,Results,[opt(prog),opt(inclmin)])
+%	.
+%run_asp(TmpFile, Results) :-
+%	nb_getval(strategy,gmax), !,
+%	run(TmpFile,Results,[opt(prog),opt(inclmin)])
+%	.
 run_asp(TmpFile, Results) :-
 	run(TmpFile,Results,[opt(prog)])
 	.
@@ -721,4 +732,4 @@ test_profile2(['test/archeo1-1.pl','test/archeo1-2.pl','test/archeo1-3.pl','test
 
 test12 :-
 	test_profile(Prof),
-	test_rsf(Prof,inclmin,weak,rsets).
+	test_rsf(Prof,max,weak,rsets).
