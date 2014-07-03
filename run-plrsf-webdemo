@@ -1,0 +1,11 @@
+#! /bin/bash
+# starts the plrsf-webdemo with the correct library path
+# in order to load the shared libs correctly (needed on 64bits
+# linux platforms)
+
+PLRSF_EXE=~/src/prolog/plrsf/plrsf-webdemo
+
+# swi-prolog shared libraries location
+export SWI_HOME_DIR='/usr/lib/swi-prolog'
+
+${PLRSF_EXE}
