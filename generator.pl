@@ -1,31 +1,29 @@
 %% -*- prolog -*-
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%%	Copyright 2012 Éric Würbel, LSIS-CNRS, Université du Sud
-%%	Toulon-Var
+%%  Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon.
 %%
-%%	This file is part of PLRsf-solver.
-%%	PLRsf-Solver is free software: you can redistribute it and/or
-%%	modify it under the terms of the GNU General Public License as
-%%	published by the Free Software Foundation, either version 3 of
-%%	the License, or (at your option) any later version.
+%%  This file is part of PLRsf-solver. PLRsf-Solver is free software:
+%%  you can redistribute it and/or modify it under the terms of the GNU
+%%  General Public License as published by the Free Software Foundation,
+%%  either version 3 of the License, or (at your option) any later
+%%  version.
 %%
-%%	PLRsf-Solver is distributed in the hope that it will be useful,
-%%	but WITHOUT ANY WARRANTY; without even the implied warranty of
-%%	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-%%	General Public License for more details.
+%%  PLRsf-Solver is distributed in the hope that it will be useful, but
+%%  WITHOUT ANY WARRANTY; without even the implied warranty of
+%%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+%%  General Public License for more details.
 %%
-%%	You should have received a copy of the GNU General Public
-%%	License along with Rsf-solver. If not, see
-%%	<http://www.gnu.org/licenses/>.
+%%  You should have received a copy of the GNU General Public License
+%%  along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
 %%
-%%	PLRsf-Solver implements removed set fusion of
-%%	knowledge bases represented by logic programs.
+%%  PLRsf-Solver implements removed set fusion of knowledge bases
+%%  represented by logic programs.
 %%
-%%	This module handles the generation of the ASP program which
-%%	represents a profile (i.e. a multifile of knowledge bases).
+%%  This module handles the generation of the ASP program which
+%%  represents a profile (i.e. a multifile of knowledge bases).
 %%
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :-module(generator, [
 		     init_profile/1,
@@ -354,7 +352,10 @@ gen_ht_rules(Fact,HTRules) :-
 	conjoin(HTRule1,HTRule2,HTRules)
 	.
 
-
+%%	head(+Sign,+HT,+Disj,-Result)
+%
+%	Generates the transformed image of the head of a rule. Note that
+%	we can handle heads with disjunctions.
 
 head(Sign,S,(A ; B),Conjunct) :-
 	head(Sign,S,A,C1),
@@ -385,6 +386,10 @@ head('+',S,Atom,NewAtom) :-
 	NewAtom =.. [lit__,Atom,p,S]
 	.
 
+%%	posbody(+Sign,+HT,+Disj,-Result)
+%
+%	Generates the transformed image of the positive body of a rule.
+
 posbody(Sign,S,(A , B),Conjunct) :-
 	posbody(Sign,S,A,C1),
 	posbody(Sign,S,B,C2),
@@ -413,6 +418,10 @@ posbody('+',S,Atom,NewAtom) :-
 	Atom \= -_,
 	NewAtom =.. [lit__,Atom,p,S]
 	.
+
+%%	negbody(+Sign,+HT,+Disj,-Result)
+%
+%	Generates the transformed image of the negative body of a rule.
 
 negbody(Sign,S,(A , B),Conjunct) :-
 	negbody(Sign,S,A,C1),

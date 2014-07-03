@@ -1,28 +1,26 @@
 %% -*- prolog -*-
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%%	Copyright 2012 Éric Würbel, LSIS-CNRS, Université du Sud
-%%	Toulon-Var
+%% Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon.
 %%
-%%	This file is part of Rsf-solver.
-%%	PLRsf-Solver is free software: you can redistribute it and/or
-%%	modify it under the terms of the GNU General Public License as
-%%	published by the Free Software Foundation, either version 3 of
-%%	the License, or (at your option) any later version.
+%% This file is part of Rsf-solver. PLRsf-Solver is free software: you
+%% can redistribute it and/or modify it under the terms of the GNU
+%% General Public License as published by the Free Software Foundation,
+%% either version 3 of the License, or (at your option) any later
+%% version.
 %%
-%%	PLRsf-Solver is distributed in the hope that it will be useful,
-%%	but WITHOUT ANY WARRANTY; without even the implied warranty of
-%%	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-%%	General Public License for more details.
+%% PLRsf-Solver is distributed in the hope that it will be useful, but
+%% WITHOUT ANY WARRANTY; without even the implied warranty of
+%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+%% General Public License for more details.
 %%
-%%	You should have received a copy of the GNU General Public
-%%	License along with Rsf-solver. If not, see
-%%	<http://www.gnu.org/licenses/>.
+%% You should have received a copy of the GNU General Public License
+%% along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
 %%
-%%	PLRsf-Solver implements removed set fusion of
-%%	knowledge bases represented by logic programs.
+%% PLRsf-Solver implements removed set fusion of knowledge bases
+%% represented by logic programs.
 %%
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% written for swi-prolog
 
@@ -42,7 +40,6 @@
 :-use_module(utils).
 
 :-use_module(library(clpfd)).
-
 
 %%	Command line options specification.
 
@@ -86,7 +83,7 @@ opt_spec([
 	   shortflags([p]), longflags(['program-output']),
 	   help([ 'ASP program output, one of '
 		, '  none:        program is temporary.'
-		, '  user_output: ASP program is writtent on standard output.'
+		, '  user_output: ASP program is written on standard output.'
 		, '  ATOM:        ASP program is written to the file whose '
 		, '               name is ATOM.'])
 	  ]
@@ -96,6 +93,7 @@ opt_spec([
 
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Main predicate
+
 go :-
 	current_prolog_flag(argv, [_|Args]),
 % Args = ['--mode', strong, '--strategy', max, '--results', arsets, 'test/ex12-1.pl', 'test/ex12-2.pl'],
@@ -141,6 +139,7 @@ run_rsf(Strat, Mode, ResOpt, Profile, Results) :-
 
 
 %%	test starting predicate
+
 test_rsf(Filenames,Strategy,Mode,RType) :-
 				% output file (default standard output)
 	nb_setval(file,user_output),

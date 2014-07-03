@@ -1,8 +1,8 @@
 %% -*- prolog -*-
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%%	Copyright 2012 Éric Würbel, LSIS-CNRS, Université du Sud
-%%	Toulon-Var
+%%	Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de
+%%	Toulon
 %%
 %%	This file is part of PLRsf-solver.
 %%	PLRsf-Solver is free software: you can redistribute it and/or

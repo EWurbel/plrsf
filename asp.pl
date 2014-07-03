@@ -1,32 +1,30 @@
 %% -*- prolog -*-
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%%	Copyright 2012 Éric Würbel, LSIS-CNRS, Université du Sud
-%%	Toulon-Var
+%%   Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon
 %%
-%%	This file is part of Rsf-solver.
-%%	Rsf-Solver is free software: you can redistribute it and/or
-%%	modify it under the terms of the GNU General Public License as
-%%	published by the Free Software Foundation, either version 3 of
-%%	the License, or (at your option) any later version.
+%%   This file is part of Rsf-solver. Rsf-Solver is free software: you
+%%   can redistribute it and/or modify it under the terms of the GNU
+%%   General Public License as published by the Free Software
+%%   Foundation, either version 3 of the License, or (at your option)
+%%   any later version.
 %%
-%%	Rsf-Solver is distributed in the hope that it will be useful,
-%%	but WITHOUT ANY WARRANTY; without even the implied warranty of
-%%	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-%%	General Public License for more details.
+%%   Rsf-Solver is distributed in the hope that it will be useful, but
+%%   WITHOUT ANY WARRANTY; without even the implied warranty of
+%%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+%%   General Public License for more details.
 %%
-%%	You should have received a copy of the GNU General Public
-%%	License along with Rsf-solver. If not, see
-%%	<http://www.gnu.org/licenses/>.
+%%   You should have received a copy of the GNU General Public License
+%%   along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
 %%
-%%	Rsf-Solver implements removed set fusion of propositionnal
-%%	knowledge bases.
+%%   Rsf-Solver implements removed set fusion of propositionnal
+%%   knowledge bases.
 %%
-%%	This module implements predicates which runs an ASP solver on
-%%	some program. It also declares necessary operators for ASP
-%%	programs generation.
+%%   This module implements predicates which runs an ASP solver on some
+%%   program. It also declares necessary operators for ASP programs
+%%   generation.
 %%
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :-module(asp,[
 	      run/2,
@@ -57,6 +55,7 @@ solver_start(path(clingo)).
 %%	runs an asp solver on the specified file and collect
 %	results. At this time, the only supportedd solver is solver is
 %	clingo.
+
 run(File,Results) :-
 	run(File,Results,[opt(none)])
 	.
@@ -200,6 +199,7 @@ rsubset([A|L],S2) :-
 
 
 %%	Keep minimize optimization results
+
 keep_min_opt([],L,L).
 keep_min_opt([N/O/AS|L],[],Final) :-
 	keep_min_opt(L,[N/O/AS],Final)
