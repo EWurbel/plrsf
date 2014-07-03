@@ -121,6 +121,7 @@ collect_kb_atoms(A,Set,NewSet) :-
 %%	gen_atoms_htrules(+Profile, AtomRules)
 %%	Associate atoms of a profile with the rules representing them in
 %%	the merging system.
+
 gen_atoms_htrules(Profile, AtomRules) :-
 	collect_atoms(Profile,[],Atoms),
 	gen_atom_htrules_c(Atoms,Rules1),
@@ -140,6 +141,7 @@ gen_atoms_htrules(Profile, AtomRules) :-
 %%	gen_atom_rules_c(?Atoms, ?Rules)
 %%      True if rules represent the generation of HT-interpretations
 %%	over the list of Atoms, using choice constucts.
+
 gen_atom_htrules_c([],true).
 gen_atom_htrules_c([-A|L], AtRules) :-
 	nh(A,AH),
@@ -163,6 +165,7 @@ gen_atom_htrules_c([A|L], AtRules) :-
 %%	Rules is a set of rules allowing the mutual
 %%	exclusion of the opposite atoms present in the
 %%      Lits set.
+
 forbid_opposite_litterals([],true).
 forbid_opposite_litterals([-A|T],Rules) :-
 	member(A,T),
@@ -190,32 +193,38 @@ forbid_opposite_litterals([A|T],Rules) :-
 forbid_opposite_litterals([_|T],Rules) :-
 	forbid_opposite_litterals(T,Rules).
 
+%%	DONE : these predicates have to be reworked, because now the
+%	literals are not just prolog atoms. They can also be terms.
 
 %%	h(?Atom, ?Representation)
 %%	True if AH is the 'here' tagged version of the atom A.
+
 h(A, AH) :-
-	atom(A),
-	AH =.. [A,p,h]
+	(   atom(A) ; compound(A) ),
+	AH =.. [lit__,A,p,h]
 	.
 
 %%	t(?Atom, ?Representation)
 %%	True if AH is the 'there' tagged version of the atom A.
+
 t(A, AT) :-
-	atom(A),
-	AT =.. [A,p,t]
+	(   atom(A) ; compound(A) ),
+	AT =.. [lit__,A,p,t]
 	.
 
 %%	nh(?Atom, ?Representation)
 %%	True if AH is the 'here' tagged version of the atom -A.
+
 nh(A, AH) :-
-	atom(A),
-	AH =.. [A,n,h]
+	(   atom(A) ; compound(A) ),
+	AH =.. [lit__,A,n,h]
 	.
 %%	nt(?Atom, ?Representation)
 %%	True if AH is the 'there' tagged version of the atom -A.
+
 nt(A, AT) :-
-	atom(A),
-	AT =.. [A,n,t]
+	(   atom(A) ; compound(A) ),
+	AT =.. [lit__,A,n,t]
 	.
 
 
@@ -230,6 +239,7 @@ nt(A, AT) :-
 %%      the production of ht-models, except that rules from the
 %%	KBs preventing model generation raise a spoiling atom instead
 %%      of violating a constraint.
+
 gen_profile_htrules([],true).
 gen_profile_htrules([ic-Rules|KBs],Repr) :-
 	gen_ht_rules(Rules,ICRepr),
@@ -251,6 +261,7 @@ gen_profile_htrules([Name-Rules|KBs],Repr) :-
 %%	the KB preventing model generation raise a spoiling atom instead
 %%	of violating a constraint. The spoiling atom name is generated
 %%	from the KB name
+
 gen_ht_rules(Name,(A,B),Repr) :-
 	gen_ht_rules(Name,A,R1),
 	gen_ht_rules(Name,B,R2),
@@ -301,6 +312,7 @@ gen_ht_rules(Name,Fact,HTRules) :-
 %%	gen_ht_rules(+Rules,-HTRules)
 %%	Associate a conjunction of rules with a conjunction of rules
 %%	computing the HT-models.
+
 gen_ht_rules((A,B),Repr) :-
 	gen_ht_rules(A,R1),
 	gen_ht_rules(B,R2),
@@ -353,24 +365,24 @@ head(_,_,(not _),true).
 head('-',S,-Atom,-NewAtom) :-
 	Atom \= (_ ; _),
 	Atom \= (not _),
-	NewAtom =.. [Atom,n,S]
+	NewAtom =.. [lit__,Atom,n,S]
 	.
 head('-',S,Atom,-NewAtom) :-
 	Atom \= (_ ; _),
 	Atom \= (not _),
 	Atom \= -_,
-	NewAtom =.. [Atom,p,S]
+	NewAtom =.. [lit__,Atom,p,S]
 	.
 head('+',S,-Atom,NewAtom) :-
 	Atom \= (_ ; _),
 	Atom \= (not _),
-	NewAtom =.. [Atom,n,S]
+	NewAtom =.. [lit__,Atom,n,S]
 	.
 head('+',S,Atom,NewAtom) :-
 	Atom \= (_ ; _),
 	Atom \= (not _),
 	Atom \= -_,
-	NewAtom =.. [Atom,p,S]
+	NewAtom =.. [lit__,Atom,p,S]
 	.
 
 posbody(Sign,S,(A , B),Conjunct) :-
@@ -382,24 +394,24 @@ posbody(_,_,(not _),true).
 posbody('-',S,-Atom,-NewAtom) :-
 	Atom \= (_ , _),
 	Atom \= (not _),
-	NewAtom =.. [Atom,n,S]
+	NewAtom =.. [lit__,Atom,n,S]
 	.
 posbody('-',S,Atom,-NewAtom) :-
 	Atom \= (_ , _),
 	Atom \= (not _),
 	Atom \= -_,
-	NewAtom =.. [Atom,p,S]
+	NewAtom =.. [lit__,Atom,p,S]
 	.
 posbody('+',S,-Atom,NewAtom) :-
 	Atom \= (_ , _),
 	Atom \= (not _),
-	NewAtom =.. [Atom,n,S]
+	NewAtom =.. [lit__,Atom,n,S]
 	.
 posbody('+',S,Atom,NewAtom) :-
 	Atom \= (_ , _),
 	Atom \= (not _),
 	Atom \= -_,
-	NewAtom =.. [Atom,p,S]
+	NewAtom =.. [lit__,Atom,p,S]
 	.
 
 negbody(Sign,S,(A , B),Conjunct) :-
@@ -411,18 +423,18 @@ negbody(_,_,Atom,true) :-
 	Atom \= (not _),
 	Atom \= (_ , _).
 negbody('-',S,(not -Atom),-NewAtom) :-
-	NewAtom =.. [Atom,n,S]
+	NewAtom =.. [lit__,Atom,n,S]
 	.
 negbody('-',S,(not Atom),-NewAtom) :-
 	Atom \= -_,
-	NewAtom =.. [Atom,p,S]
+	NewAtom =.. [lit__,Atom,p,S]
 	.
 negbody('+',S,(not -Atom),NewAtom) :-
-	NewAtom =.. [Atom,n,S]
+	NewAtom =.. [lit__,Atom,n,S]
 	.
 negbody('+',S,(not Atom),NewAtom) :-
 	Atom \= -_,
-	NewAtom =.. [Atom,p,S]
+	NewAtom =.. [lit__,Atom,p,S]
 	.
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -439,6 +451,7 @@ negbody('+',S,(not Atom),NewAtom) :-
 %%	gen_atoms_asrules(+Profile, AtomRules)
 %%	Associate atoms of a profile with the rules representing them in
 %%	the merging system.
+
 gen_atoms_asrules(Profile, AtomRules) :-
 	collect_atoms(Profile,[],Atoms),
 	gen_atom_asrules_c(Atoms,Rules1),
@@ -504,6 +517,7 @@ auth_exclusion([A|L],((:- A, not auth(A)),Conj)) :-
 %%      the production of answer sets, except that rules from the
 %%	KBs preventing model generation raise a spoiling atom instead
 %%      of violating a constraint.
+
 gen_profile_asrules([],true).
 gen_profile_asrules([ic-Rules|KBs],Repr) :-
 	gen_as_rules(Rules,ICRepr),
@@ -655,6 +669,7 @@ next_rule_atom(KBName, Atom) :-
 
 %%	collect_rule_atoms(+Profile,-RuleAtoms)
 %%	Collect all rule atoms for a given profile.
+
 collect_rule_atoms([],[]).
 collect_rule_atoms([KBName-_|Profile],RuleAtoms) :-
 	bagof(A,R^get_rules(KBName,R,A),KA),
@@ -678,12 +693,14 @@ record_rule(KBName, RAtom, Rule) :-
 %%	specified knowledge base. There is an implicit hypothesis
 %%	that rules are not duplicated in a single knowledge base.
 %%	This hypothesis is necessary for the case +Rule, -Atom.
+
 get_rules(KBName, Rule, Atom) :-
 	rule(KBName,Atom,Rule)
 	.
 
 %%	erase_rules(+KBName)
 %%	Erases the rules for the given knowledge base.
+
 erase_rules(KBName) :-
 	\+ var(KBName),
 	retractall(rule(KBName,_,_))
@@ -692,6 +709,7 @@ erase_rules(KBName) :-
 %%	init_profile(+Profile)
 %%	various initializations. Must be called before any predicate in
 %%	this module.
+
 init_profile(P) :-
         retractall(kbnames(_)),
 	init_profile2(P),
@@ -714,6 +732,28 @@ collect_kbnames([ic-_|Profile],L) :-
 collect_kbnames([Name-_|Profile],[Name|L]) :-
 	collect_kbnames(Profile,L)
 	.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
