@@ -287,7 +287,7 @@ result_name(Dir,Name) :-
 
 %%	run_asp(+TmpFile,-Results)
 %%	Run asp solver on TmpFile and unify Results with the results of
-%	the run.
+%	  the run.
 
 run_asp(TmpFile, Results) :-
 	nb_getval(strategy,all), !,

@@ -67,7 +67,7 @@ run(File,Results,[Opt]) :-
 	solver_start(Path),
 	process_create(Path, ['--opt-all',File,0], [stdout(pipe(PH)),detached(true)]),
 	collect_results(PH,Results1),
-	close(PH),
+	close(PH,[force(true)]), % hack
 	post_process(Results1,Results,Opt)
 	.
 

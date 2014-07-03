@@ -598,7 +598,7 @@ menu_bar -->
 
 footer -->
 	html(div(class(footer),
-		 p('Copyright 2012 Éric Würbel LSIS CNRS UMR7296, Université du Sud Toulon-Var')))
+		 p('Copyright 2012-2014 Éric Würbel LSIS CNRS UMR7296, Université de Toulon')))
 	.
 
 %%	Body common stuff.

@@ -28,7 +28,7 @@ load_profile([File|Files],[KBName-KB|Profile]) :-
 	load_profile(Files,Profile)
 	.
 
-%%	load_kb(+kb_file,-KBName,-KB)
+%%	load_kb(+Kb_file,-KBName,-KB)
 load_kb(File,KBName-Wff) :-
 	exists_file(File),
         open(File,read,Stream),
