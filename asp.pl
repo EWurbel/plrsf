@@ -1,30 +1,28 @@
 %% -*- prolog -*-
-%%   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%   Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon
-%%
-%%   This file is part of Rsf-solver. Rsf-Solver is free software: you
-%%   can redistribute it and/or modify it under the terms of the GNU
-%%   General Public License as published by the Free Software
-%%   Foundation, either version 3 of the License, or (at your option)
-%%   any later version.
-%%
-%%   Rsf-Solver is distributed in the hope that it will be useful, but
-%%   WITHOUT ANY WARRANTY; without even the implied warranty of
-%%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-%%   General Public License for more details.
-%%
-%%   You should have received a copy of the GNU General Public License
-%%   along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
-%%
-%%   Rsf-Solver implements removed set fusion of propositionnal
-%%   knowledge bases.
-%%
-%%   This module implements predicates which runs an ASP solver on some
-%%   program. It also declares necessary operators for ASP programs
-%%   generation.
-%%
-%%   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+   Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon
+
+   This file is part of Rsf-solver. Rsf-Solver is free software: you
+   can redistribute it and/or modify it under the terms of the GNU
+   General Public License as published by the Free Software
+   Foundation, either version 3 of the License, or (at your option)
+   any later version.
+
+   Rsf-Solver is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
+
+   Rsf-Solver implements removed set fusion of propositionnal
+   knowledge bases.
+
+   This module implements predicates which runs an ASP solver on some
+   program. It also declares necessary operators for ASP programs
+   generation.
+*/
 
 :-module(asp,[
 	      run/2,
@@ -52,13 +50,28 @@ solver_start(path(clingo)).
 
 
 %%	run(+File,-Results)
-%%	runs an asp solver on the specified file and collect
-%	results. At this time, the only supportedd solver is solver is
+%
+%	Runs an asp solver on the specified File and collect
+%	Results. At this time, the only supportedd solver is solver is
 %	clingo.
 
 run(File,Results) :-
 	run(File,Results,[opt(none)])
 	.
+
+%%	run(+File,-Results,+Options)
+%
+%	Runs an asp solver on the specified File and collect
+%	Results. At this time, the only supportedd solver is solver is
+%	clingo. Option is a list of options. Actually, the supported
+%	options are :
+%	- opt(none) synonym for no option
+%	- opt(inclmin) keep removed sets which are minimal with respect
+%	  to set inclusion. Beware, this is performed by a
+%	  post-processing, i.e. all removed sets are computed, and then
+%	  the minimal ones are filtered.
+%	- opt(prog) : keep the removed sets computed by the optimization
+%	  implemented inthe program.
 
 run(File,Results,[]) :-
 	run(File,Results,[opt(none)]).
@@ -71,21 +84,21 @@ run(File,Results,[Opt]) :-
 	.
 
 %%	post_process(+InResults, -OutResults, +Option)
-%%
-%%	Do some post processing on collected results.
-%%	Option is a opt/1 term with the following significance :
-%%	none : no optimization : collect all answer sets (i.e. all
-%%	       potiential removed sets).
-%%	inclmin : keep inclusion-minimal potential remove sets.
-%%	prog : keep removed sets given by the optimization implemented
-%%	       in the program.
-%%	TODO : séparer (et autoriser) trois cas :
-%%	- inclmin seul : comme avant : on garde les incl-min de tous les
-%	answer sets.
+%
+%	Do some post processing on collected results.
+%	Option is a opt/1 term with the following significance :
+%	none : no optimization : collect all answer sets (i.e. all
+%	       potiential removed sets).
+%	inclmin : keep inclusion-minimal potential remove sets.
+%	prog : keep removed sets given by the optimization implemented
+%	       in the program.
+%	TODO : séparer (et autoriser) trois cas :
+%	- inclmin seul : comme avant : on garde les incl-min de tous les
+%	  answer sets.
 %	- prog seul : comme avant : on garde les answer sets optimisés
-%	du prog.
+%	  du prog.
 %	- prog+inclmin : on garde les answer sets optimisés, et parmi
-%	ceux-ci on garde les minimaux suivants l'inclusion.
+%	  ceux-ci on garde les minimaux suivants l'inclusion.
 
 post_process(InResults, OutResults,opt(none)) :-
 	filter_nonopt_results(InResults,OutResults)
@@ -101,7 +114,8 @@ post_process(InResults, OutResults,opt(prog)) :-
 	.
 
 %%	collect_results(+Stream, -Results)
-%%	Read, analyse and collect results from clasp solver.
+%
+%	Reads, analyzes and collect results from clasp solver.
 
 collect_results(Stream,Results) :-
 	read_line_to_codes(Stream,Line),
@@ -119,8 +133,12 @@ collect_results(Stream,Results) :-
 	)
 	.
 
-%%	remove garbage.
-%%	!! CUT !!
+%%	filter_nonopt_results(+In,-Out)
+%
+%	Removes garbage from ASP solver output, i.e. keep only answer
+%	sets lines.
+%
+%       !! CUT !!
 
 filter_nonopt_results([],[]) :- !.
 filter_nonopt_results([as(AS)|L1],[AS|L2]) :-
@@ -130,10 +148,12 @@ filter_nonopt_results([_|L1],L2) :-
 	filter_nonopt_results(L1,L2)
 	.
 
-
-%%	remove garbage, write triples (Answer #, optimisation value,
-%%	answer set) in a compact way.
-%%	!! CUT !!
+%%	filter_results(+In, -Out)
+%
+%	Removes garbage, writes triples (Answer #, optimisation value,
+%	answer set) in a compact way.
+%
+%	!! CUT !!
 
 filter_results([],[]) :- !.
 filter_results([garbage|L1],L2) :- !,
@@ -144,15 +164,17 @@ filter_results([answer_num(N),as(AS),optimization(O)|L1],[N/O/AS|L2]) :-
 	.
 
 %%	keep_inclmin(+Collection,?MinIncl)
-%%	Succeeds if MinIncl is the collection of inclusion-minimal
+%
+%	Succeeds if MinIncl is the collection of inclusion-minimal
 %	sets of Collection.
 
 keep_inclmin(Collection,MinIncl) :-
 	keep_inclmin([],[],Collection,MinIncl)
 	.
 %%	keep_inclmin(+Choosen,+Rejected,+Collection,?Result)
-%%	Upon success, Result contains the sets from Collection
-%%	which are minimal according to set inclusion in Collection U
+%
+%	Upon success, Result contains the sets from Collection
+%	which are minimal according to set inclusion in Collection U
 %	Rejected, plus the sets which are initially in Chosen. The set
 %	inclusion test is performed on rsf/2 atoms only.
 %	See keep_inclmin/2 for everyday use !
@@ -168,7 +190,8 @@ keep_inclmin(InS,R,[AS|L],OutS) :-
 	.
 
 %%	is_incl_min(+Set, +Collection)
-%%	Tests wether Set is minimal according to set inclusion in
+%
+%	Tests wether Set is minimal according to set inclusion in
 %	Collection. The set inclusion test is erformed on rsf/2 atoms
 %	only.
 
@@ -185,7 +208,8 @@ is_incl_min(S,[S1|L]) :-
 
 
 %%	rsubset(?S1,?S2)
-%%	True if all rsf/2 atoms in S1 are also in S2.
+%
+%	True if all rsf/2 atoms in S1 are also in S2.
 
 rsubset([],_).
 rsubset([rsf(X,Y)|L],S2) :-

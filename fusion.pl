@@ -1,26 +1,26 @@
 %% -*- prolog -*-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%% Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon.
-%%
-%% This file is part of Rsf-solver. PLRsf-Solver is free software: you
-%% can redistribute it and/or modify it under the terms of the GNU
-%% General Public License as published by the Free Software Foundation,
-%% either version 3 of the License, or (at your option) any later
-%% version.
-%%
-%% PLRsf-Solver is distributed in the hope that it will be useful, but
-%% WITHOUT ANY WARRANTY; without even the implied warranty of
-%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-%% General Public License for more details.
-%%
-%% You should have received a copy of the GNU General Public License
-%% along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
-%%
-%% PLRsf-Solver implements removed set fusion of knowledge bases
-%% represented by logic programs.
-%%
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+
+     Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon.
+
+     This file is part of Rsf-solver. PLRsf-Solver is free software: you
+     can redistribute it and/or modify it under the terms of the GNU
+     General Public License as published by the Free Software
+     Foundation, either version 3 of the License, or (at your option)
+     any later version.
+
+     PLRsf-Solver is distributed in the hope that it will be useful, but
+     WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+     General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
+
+     PLRsf-Solver implements removed set fusion of knowledge bases
+     represented by logic programs.
+
+*/
 
 %% written for swi-prolog
 
@@ -123,7 +123,19 @@ go :-
 	interpret(Results,Name,RType)
 	.
 
-%%	running predicate for external handling (e.g. webserver)
+%%	run_rsf(+Strat, +Mode, +ResOpt, +Profile, -Results)
+%
+%	Main predicate for external handling (e.g. webserver). Run the
+%	PlRSF fusion engine on the Profile, with specified Mode (either
+%	weak or strong), using strategy Strat (sigma, card, max, gmax,
+%	inclmin, all). Results is a list, which content depedents of the
+%	ResOpt value. If ResOpt unifies with `all', Result is a list of
+%	belief bases (programs) which are the possible results of the
+%	merging operation. If ResOpt unifies with arsets then Results is
+%	a list of sets of spoiling atoms representing the removed sets
+%	according to the specified strategy. Finally, if ResOpt unifies
+%	with rsets, Results is the list of removed sets according to the
+%	specified strategy.
 
 run_rsf(Strat, Mode, ResOpt, Profile, Results) :-
 				% no program outpout.
@@ -160,8 +172,9 @@ test_rsf(Filenames,Strategy,Mode,RType) :-
 	.
 
 %%	print_start_state(+InputFiles)
-%%	Writes on the standard output the state of all options and the
-%%	files given as arguments to the program.
+%
+%	Writes on the standard output the state of all options and the
+%	files given as arguments to the program.
 
 print_start_state(IFiles) :-
 	write('starting plrsf with:'), nl,
@@ -177,13 +190,15 @@ print_start_state(IFiles) :-
 	.
 
 %%	process_args(+Args,-Files)
-%%      parse arguments.
-%%	Appart from options, arguments consists in a list of input
-%%	files. Each input file represents a knowledge base of the
-%%	profile. It must contain a fact kbname/1, which names the
-%%	knowledge base. By convention, kbname(ic) represent the
-%%	integrity constraints (which implicitely means that if there is
-%%	no base containing kbname(ic), we deal with natural merging.
+%
+%       Parse command line arguments.
+%
+%	Appart from options, arguments consists in a list of input
+%	files. Each input file represents a knowledge base of the
+%	profile. It must contain a fact kbname/1, which names the
+%	knowledge base. By convention, kbname(ic) represents the
+%	integrity constraints (which implicitely means that if there is
+%	no base containing kbname(ic), we deal with natural merging).
 
 process_args(Args,Files) :-
 	opt_spec(Specs),
@@ -197,7 +212,8 @@ process_args(Args,Files) :-
 	.
 
 %%	init_file_opt(+Opts)
-%%	sets the output file.
+%
+%	Sets the output file.
 
 init_file_opt(Opts) :-
 	member(opt(file,V),Opts),
@@ -205,7 +221,10 @@ init_file_opt(Opts) :-
 	.
 
 %%	init_strategy_opt(+Opts)
-%%	check and sets the merging strategy.
+%
+%       check and sets the merging strategy.
+%
+%	Throws a plrsf_exception if the strategy is unknown.
 
 init_strategy_opt(Opts) :-
 	member(opt(strategy,V),Opts),
@@ -220,7 +239,11 @@ init_strategy_opt(Opts) :-
 	.
 
 %%	init_mode_opt(+Opts)
-%%	Check and sets the merging mode (weak or strong).
+%
+%       Check and sets the merging mode (weak or strong).
+%
+%	Throws a plrsf_exception if the specified merging mode is
+%	unknown.
 
 init_mode_opt(Opts) :-
 	member(opt(mode,V),Opts),
@@ -235,7 +258,8 @@ init_mode_opt(Opts) :-
 	.
 
 %%	init_outprog_opt(+Opts)
-%%	Sets the output program name.
+%
+%       Set the output program name.
 
 init_outprog_opt(Opts) :-
 	member(opt(outprog,V),Opts),
@@ -243,7 +267,10 @@ init_outprog_opt(Opts) :-
 	.
 
 %%	init_results_opt(+Opts)
-%%	Check and sets the results option.
+%
+%       Check and set the results option.
+%
+%       Throws a plrsf_exception if the result type is unknown.
 
 init_results_opt(Opts) :-
 	member(opt(results,V),Opts),
@@ -257,16 +284,17 @@ init_results_opt(Opts) :-
 	fail
 	.
 
-
 %%	result_dir(+Profile,-Dir)
-%%	get the directory of the profile
+%
+%       Get the directory of the profile.
 
 result_dir([F|_],Dir) :-
 	file_directory_name(F,Dir)
 	.
 
 %%	result_name(+Dir,-Name)
-%%	Compute the base name of the result files.
+%
+%	Compute the base name of the result files.
 
 result_name(_,user_output):-
 	catch(nb_getval(file,user_output),_,fail),
@@ -285,8 +313,9 @@ result_name(Dir,Name) :-
 
 
 %%	run_asp(+TmpFile,-Results)
-%%	Run asp solver on TmpFile and unify Results with the results of
-%	  the run.
+%
+%	Run asp solver on TmpFile and unify Results with the results of
+%	the run.
 
 run_asp(TmpFile, Results) :-
 	nb_getval(strategy,all), !,
@@ -313,31 +342,31 @@ run_asp(TmpFile, Results) :-
 
 
 
+/*
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	Main generation process
 
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%	Main generation process
-%%
-%%	Notes ont the generation:
-%%	========================
-%%
-%%	Prolog and ASP having a ver close syntax, the generation is
-%%	quite easy. The construction of rules rely to a great extent on
-%%	the prolog unification mechanise and term representation.
-%%	However, there are a few exceptions :
-%%
-%%	the curly brackets construction cannot be represented directly by
-%%	a prolog construct. As a consequene, cardinality literals,
-%%	reprensented as "Min { ... } Max" will be represented here as
-%%	Min // ... // Max.
-%%
-%%	For optimization statements, we only need the [] notation, not
-%%	the {} one, so we have no problem at all.
+	Notes ont the generation:
+	========================
 
+	Prolog and ASP having a ver close syntax, the generation is
+	quite easy. The construction of rules rely to a great extent on
+	the prolog unification mechanism and term representation.
+	However, there are a few exceptions :
 
-%% generate(+IFiles, +OFile)
-%%
-%% generates the program which computes the removed sets.
-%% IFiles is a list of input file names, OFile an output file name.
+	the curly brackets construction cannot be represented directly by
+	a prolog construct. As a consequence, cardinality literals,
+	reprensented as "Min { ... } Max" in ASP systems, will be
+	represented here as Min // ... // Max.
+
+	For optimization statements, we only need the [] notation, not
+	the {} one, so we have no problem at all.
+*/
+
+%%      generate(+IFiles, +OFile)
+%
+%       generates the program which computes the removed sets.
+%       IFiles is a list of input file names, OFile an output file name.
 
 generate(Profile, OFile) :-
 	init_profile(Profile),
@@ -357,7 +386,8 @@ generate(Profile, OFile) :-
 	output_prog(Repr)
 	.
 
-%%	gen_atoms_rules(+Profile, AtomRules)
+%%	gen_atoms_rules(+Profile, -AtomRules)
+%
 %	Associate atoms of a profile with the rules representing them in
 %	the merging system.
 
@@ -370,6 +400,9 @@ gen_atoms_rules(Profile,Representation) :-
 	gen_atoms_asrules(Profile,Representation)
 	.
 
+%%	gen_profile_rules(+Profile, -ProfRepr)
+%
+%	Generate the ASP rules representing the input belief profile.
 
 gen_profile_rules(Profile,ProfRepr) :-
 	nb_getval(mode,weak),
@@ -381,9 +414,11 @@ gen_profile_rules(Profile,ProfRepr) :-
 	.
 
 %%	output_prog(+Repr)
-%%      write the conjunction of rules if it has been requested by
-%%	option outporog.
-%%	!!! CUT !!!
+%
+%       Write the conjunction of rules if it has been requested by
+%	option outporog.
+%
+%	!!! CUT !!!
 
 output_prog(_) :-
 	nb_getval(outprog,none),
@@ -401,37 +436,35 @@ output_prog(Repr) :-
 	.
 
 
+/*
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	Results interpretation
+	Several possibilities :
+
+	1. generate all possible programs.
+	   ==============================
+
+	For each removed set, compute the resulting program. The result
+        of the merging operation can be considered to be the union of
+	the models of the program.
+
+	2. print each removed set
+	   ======================
+
+	User will then be able to submit one of these removed set
+	to the rsf-generate program, who will generate the corresponding
+	ASP program.
+
+	3. union possible ht-models, generate canonical program
+	   ====================================================
+
+	Pros : no choice to be made
+	Cons : the generated program is no longer an extended program
+	       (i.e. it is disjunctive, moreover is it a GLP).
+
+*/
 
 
-
-
-
-
-%%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%	Results interpretation
-%%	Several possibilities :
-%%
-%%	1. generate all possible programs.
-%%	   ==============================
-%%
-%%	For each removed set, compute the resulting program. The result
-%%      of the merging operation can be considered to be the union of
-%%	the models of the program.
-%%
-%%	2. print each removed set
-%%	   ======================
-%%
-%%	User will then be able to submit one of these removed set
-%%	to the rsf-generate program, who will generate the corresponding
-%%	ASP program.
-%%
-%%	3. union possible ht-models, generate canonical program
-%%	   ====================================================
-%%
-%%	Pros : no choice to be made
-%%	Cons : the generated program is no longer an extended program
-%%	       (i.e. it is disjunctive, moreover is it a GLP).
-%%
 
 interpret(Results,BaseName,all) :-
 	write_programs(Results,BaseName,0)
@@ -445,7 +478,8 @@ interpret(Results,BaseName,rsets) :-
 	.
 
 %%	gather(+Results, +Opt, -Output)
-%%	Gather the resutls according to the output option Opt. This
+%
+%	Gather the resutls according to the output option Opt. This
 %	gives more flexibility to applications, e.g. to build a web
 %	server demo.
 
@@ -461,15 +495,17 @@ gather(Results,rsets,Out) :-
 
 
 %%	gather_arsets(+Results,-Output)
-%%	generate all the the removed sets, only outputting
-%%	rsf/2 atoms
+%
+%	generate all the the removed sets, only outputting
+%	rsf/2 atoms
 
 gather_arsets(Results,RSets) :-
 	collect_rsets(Results,[],RSets)
 	.
 
 %%	gather_rsets(+Results,-Output)
-%%	generate all the the removed sets
+%
+%	generate all the the removed sets
 
 gather_rsets(Results,RSets) :-
 	collect_rsets(Results,[],ARSets),
@@ -477,8 +513,9 @@ gather_rsets(Results,RSets) :-
 	.
 
 %%	gather_programs(+Results,-Output)
-%%      Generate all the programs corresponding to the result
-%%	(i.e. the different removed sets).
+%
+%       Generate all the programs corresponding to the result
+%	(i.e. the different removed sets).
 
 gather_programs(Results,Programs) :-
 	collect_rsets(Results,[],ARSets),
@@ -487,24 +524,27 @@ gather_programs(Results,Programs) :-
 	.
 
 %%	write_arsets(+Results,+BaseName,+Counter)
-%%	Output all the the removed sets, only outputting
-%%	rsf/2 atoms
+%
+%	Output all the the removed sets, only outputting
+%	rsf/2 atoms
 
 write_arsets(Results,BaseName,Counter) :-
 	collect_rsets(Results,[],RSets),
 	output_arsets(RSets,BaseName,Counter)
 	.
 %%	write_rsets(+Results,+BaseName,+Counter)
-%%	Output all the the removed sets
+%
+%	Output all the the removed sets
 
 write_rsets(RSets,BaseName,Counter) :-
 	output_rsets(RSets,BaseName,Counter)
 	.
 
 %%	write_programs(+Results,+BaseName,+Counter)
-%%      Output all the programs corresponding to the result
-%%	(i.e. the different removed sets). Base name is the base of the
-%%	generated filenames. Counter is used to number the output files.
+%
+%       Output all the programs corresponding to the result
+%	(i.e. the different removed sets). Base name is the base of the
+%	generated filenames. Counter is used to number the output files.
 
 write_programs(Results,BaseName,Counter) :-
 	collect_rsets(Results,[],RSets),
@@ -512,7 +552,8 @@ write_programs(Results,BaseName,Counter) :-
 	.
 
 %%	collect_rsets(+Results,+IRSets,-ORSets)
-%%	collect the removed sets, eliminating duplicates.
+%
+%	collect the removed sets, eliminating duplicates.
 
 collect_rsets([],R,R).
 collect_rsets([Res|L],IRsets,ORsets) :-
@@ -525,7 +566,8 @@ collect_rsets([Res|L],IRsets,ORsets) :-
 
 
 %%	keep_rule_atoms(+RSet,-RAtoms).
-%%	Keep only the rule atoms of a removed set.
+%
+%	Keep only the rule atoms of a removed set.
 
 keep_rule_atoms([],[]).
 keep_rule_atoms([rsf(K,N)|L1],[rsf(K,N)|L2]) :-
@@ -537,7 +579,8 @@ keep_rule_atoms([A|L1],L2) :-
 	.
 
 %%	arsets_to_rsets(+ARSets, -RSets)
-%%	From sets of atoms representing removed sets to removed sets.
+%
+%	From sets of atoms representing removed sets to removed sets.
 
 arsets_to_rsets([],[]).
 arsets_to_rsets([ARSet|L1],[SRSet|L2]) :-
@@ -552,8 +595,9 @@ arset_to_rset([A|L1],[F|L2]) :-
 	.
 
 %%	arsets_to_bases(+ARSets,-Bases, +FAList)
-%%	From sets of atoms representing removed sets to belief bases
-%%	using the given formula/FormulaAtom list.
+%
+%	From sets of atoms representing removed sets to belief bases
+%	using the given formula/FormulaAtom list.
 
 arsets_to_programs([],[],_).
 arsets_to_programs([ARSet|L1],[Prog|L2],FAList) :-
@@ -578,11 +622,12 @@ arset_to_program(Atoms,L2,[_|FAList]) :-
 	.
 
 %%	output_arsets(+RSets,+Filename,+Counter)
-%%	Output the rsf/2 predictes defining the removed sets in the
-%%	collection RSets. Filename is either a file name to write to, or
-%%	the atom user_output, which represents the standard output.
-%%	Counter is the starting value of a counter which indexes the
-%%	output.
+%
+%	Output the rsf/2 predictes defining the removed sets in the
+%	collection RSets. Filename is either a file name to write to, or
+%	the atom user_output, which represents the standard output.
+%	Counter is the starting value of a counter which indexes the
+%	output.
 
 output_arsets([],_,_).
 output_arsets([RSet|L],user_output,Counter) :-
@@ -600,11 +645,11 @@ output_arsets([RSet|L],Base,Counter) :-
 	.
 
 %%	output_rsets(+RSets,+Filename,+Counter)
-%%	Output the removed sets in the
-%%	collection RSets. Filename is either a file name to write to, or
-%%	the atom user_output, which represents the standard output.
-%%	Counter is the starting value of a counter which indexes the
-%%	output.
+%
+%	Output the removed sets in the collection RSets. Filename is
+%	either a file name to write to, or the atom user_output, which
+%	represents the standard output. Counter is the starting value of
+%	a counter which indexes the output.
 
 output_rsets([],_,_).
 output_rsets([RSet|L],user_output,Counter) :-
@@ -622,7 +667,8 @@ output_rsets([RSet|L],Base,Counter) :-
 	.
 
 %%	wprograms(+Rset,+Basenme, +Counter)
-%%	output programs for all removed sets.
+%
+%	output programs for all removed sets.
 
 wprograms([],_,_).
 wprograms([RSet|L],user_output,Counter) :-
@@ -641,8 +687,9 @@ wprograms([RSet|L],Base,Counter) :-
 	.
 
 %%	wprogram(RSet, Stream)
-%%	Write the program corresponding to the given remove set on the
-%%	stream.
+%
+%	Write the program corresponding to the given remove set on the
+%	stream.
 
 wprogram(RSet,Stream) :-
 	get_rules(_,Rule,RA),
@@ -657,7 +704,8 @@ wprogram(RSet,Stream) :-
 wprogram(_,_).
 
 %%	write_aset(+RSet,+Stream)
-%%	write atom set on stream
+%
+%	Write atom set on stream
 
 write_aset([],_).
 write_aset([A|L],S) :-
@@ -667,7 +715,8 @@ write_aset([A|L],S) :-
 	.
 
 %%	write_rset(+RSet,+Stream)
-%%	write given removed et on stream.
+%
+%	write given removed et on stream.
 
 write_rset([],_).
 write_rset([Rule|L],S) :-
@@ -732,3 +781,27 @@ test_profile2(['test/archeo1-1.pl','test/archeo1-2.pl','test/archeo1-3.pl','test
 test12 :-
 	test_profile(Prof),
 	test_rsf(Prof,max,weak,rsets).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

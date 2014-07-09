@@ -1,29 +1,28 @@
 %% -*- prolog -*-
-%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%  Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon.
-%%
-%%  This file is part of PLRsf-solver. PLRsf-Solver is free software:
-%%  you can redistribute it and/or modify it under the terms of the GNU
-%%  General Public License as published by the Free Software Foundation,
-%%  either version 3 of the License, or (at your option) any later
-%%  version.
-%%
-%%  PLRsf-Solver is distributed in the hope that it will be useful, but
-%%  WITHOUT ANY WARRANTY; without even the implied warranty of
-%%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-%%  General Public License for more details.
-%%
-%%  You should have received a copy of the GNU General Public License
-%%  along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
-%%
-%%  PLRsf-Solver implements removed set fusion of knowledge bases
-%%  represented by logic programs.
-%%
-%%  This module handles the generation of the ASP program which
-%%  represents a profile (i.e. a multifile of knowledge bases).
-%%
-%%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*
+  Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon.
+
+  This file is part of PLRsf-solver. PLRsf-Solver is free software:
+  you can redistribute it and/or modify it under the terms of the GNU
+  General Public License as published by the Free Software Foundation,
+  either version 3 of the License, or (at your option) any later
+  version.
+
+  PLRsf-Solver is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Rsf-solver. If not, see <http://www.gnu.org/licenses/>.
+
+  PLRsf-Solver implements removed set fusion of knowledge bases
+  represented by logic programs.
+
+  This module handles the generation of the ASP program which
+  represents a profile (i.e. a multifile of knowledge bases).
+
+*/
 
 :-module(generator, [
 		     init_profile/1,
@@ -59,7 +58,8 @@
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%	collect_atoms(?Profile,?IAtoms,?OAtoms)
-%	true if OAtoms is a set of atoms containing
+%
+%	True if OAtoms is a set of atoms containing
 %       the atoms in IAtoms union the atoms present in
 %	Profile. Atoms are extended atoms in the sense of extended logic
 %	programs, i.e. propositionnal atoms or their strong negation.
@@ -117,8 +117,9 @@ collect_kb_atoms(A,Set,NewSet) :-
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%	gen_atoms_htrules(+Profile, AtomRules)
-%%	Associate atoms of a profile with the rules representing them in
-%%	the merging system.
+%
+%	Associate atoms of a profile with the rules representing them in
+%	the merging system.
 
 gen_atoms_htrules(Profile, AtomRules) :-
 	collect_atoms(Profile,[],Atoms),
@@ -137,8 +138,9 @@ gen_atoms_htrules(Profile, AtomRules) :-
 
 
 %%	gen_atom_rules_c(?Atoms, ?Rules)
-%%      True if rules represent the generation of HT-interpretations
-%%	over the list of Atoms, using choice constucts.
+%
+%       True if rules represent the generation of HT-interpretations
+%	over the list of Atoms, using choice constucts.
 
 gen_atom_htrules_c([],true).
 gen_atom_htrules_c([-A|L], AtRules) :-
@@ -160,9 +162,9 @@ gen_atom_htrules_c([A|L], AtRules) :-
 	.
 
 %%	forbid_opposite_literals(+Lits,-Rules)
-%%	Rules is a set of rules allowing the mutual
-%%	exclusion of the opposite atoms present in the
-%%      Lits set.
+%
+%	Rules is a set of rules allowing the mutual exclusion of the
+%	opposite atoms present in the Lits set.
 
 forbid_opposite_litterals([],true).
 forbid_opposite_litterals([-A|T],Rules) :-
@@ -191,11 +193,10 @@ forbid_opposite_litterals([A|T],Rules) :-
 forbid_opposite_litterals([_|T],Rules) :-
 	forbid_opposite_litterals(T,Rules).
 
-%%	DONE : these predicates have to be reworked, because now the
-%	literals are not just prolog atoms. They can also be terms.
 
 %%	h(?Atom, ?Representation)
-%%	True if AH is the 'here' tagged version of the atom A.
+%
+%	True if AH is the 'here' tagged version of the atom A.
 
 h(A, AH) :-
 	(   atom(A) ; compound(A) ),
@@ -203,7 +204,8 @@ h(A, AH) :-
 	.
 
 %%	t(?Atom, ?Representation)
-%%	True if AH is the 'there' tagged version of the atom A.
+%
+%	True if AH is the 'there' tagged version of the atom A.
 
 t(A, AT) :-
 	(   atom(A) ; compound(A) ),
@@ -211,14 +213,16 @@ t(A, AT) :-
 	.
 
 %%	nh(?Atom, ?Representation)
-%%	True if AH is the 'here' tagged version of the atom -A.
+%
+%	True if AH is the 'here' tagged version of the atom -A.
 
 nh(A, AH) :-
 	(   atom(A) ; compound(A) ),
 	AH =.. [lit__,A,n,h]
 	.
 %%	nt(?Atom, ?Representation)
-%%	True if AH is the 'there' tagged version of the atom -A.
+%
+%	True if AH is the 'there' tagged version of the atom -A.
 
 nt(A, AT) :-
 	(   atom(A) ; compound(A) ),
@@ -232,11 +236,12 @@ nt(A, AT) :-
 
 
 %%	gen_profile_htrules(?Profile, ?Profile_repr)
-%%	associate a profile and its representation in the merging
-%%	system. This representation consists in the rules ensuring
-%%      the production of ht-models, except that rules from the
-%%	KBs preventing model generation raise a spoiling atom instead
-%%      of violating a constraint.
+%
+%	associate a profile and its representation in the merging
+%	system. This representation consists in the rules ensuring the
+%	production of ht-models, except that rules from the KBs
+%	preventing model generation raise a spoiling atom instead of
+%	violating a constraint.
 
 gen_profile_htrules([],true).
 gen_profile_htrules([ic-Rules|KBs],Repr) :-
@@ -252,13 +257,15 @@ gen_profile_htrules([Name-Rules|KBs],Repr) :-
 	.
 
 %%	gen_ht_rules(+Name,+Rules,-KBR)
-%%	Associate a knowledge base and its representation in the
-%%	merging system.
-%%	This representation is a conjunction of rules allowing the
-%%	generation of the HT-models of the KB, except that rules from
-%%	the KB preventing model generation raise a spoiling atom instead
-%%	of violating a constraint. The spoiling atom name is generated
-%%	from the KB name
+%
+%	Associate a knowledge base and its representation in the merging
+%	system.
+%
+%	This representation is a conjunction of rules allowing the
+%	generation of the HT-models of the KB, except that rules from
+%	the KB preventing model generation raise a spoiling atom instead
+%	of violating a constraint. The spoiling atom name is generated
+%	from the KB name
 
 gen_ht_rules(Name,(A,B),Repr) :-
 	gen_ht_rules(Name,A,R1),
@@ -308,8 +315,9 @@ gen_ht_rules(Name,Fact,HTRules) :-
 	.
 
 %%	gen_ht_rules(+Rules,-HTRules)
-%%	Associate a conjunction of rules with a conjunction of rules
-%%	computing the HT-models.
+%
+%	Associate a conjunction of rules with a conjunction of rules
+%	computing the HT-models.
 
 gen_ht_rules((A,B),Repr) :-
 	gen_ht_rules(A,R1),
@@ -458,8 +466,9 @@ negbody('+',S,(not Atom),NewAtom) :-
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%	gen_atoms_asrules(+Profile, AtomRules)
-%%	Associate atoms of a profile with the rules representing them in
-%%	the merging system.
+%
+%	Associate atoms of a profile with the rules representing them in
+%	the merging system.
 
 gen_atoms_asrules(Profile, AtomRules) :-
 	collect_atoms(Profile,[],Atoms),
@@ -470,8 +479,9 @@ gen_atoms_asrules(Profile, AtomRules) :-
 	.
 
 %%	gen_atom_asrules_c(?Atoms, ?Rules)
-%%      True if rules represent the generation of interpretations
-%%	over the list of Atoms, using choice constucts.
+%
+%	True if rules represent the generation of interpretations over
+%	the list of Atoms, using choice constucts.
 
 gen_atom_asrules_c(Atoms,Rules) :-
 	length(Atoms,L),
@@ -504,7 +514,8 @@ as_forbid_opposite_lits([L|Lits],OppRules) :-
 	.
 
 %%	auth_exclusion(?AuthAtoms,?ExclRules)
-%%	True if ?AuthAtoms is a conjunction of auth/1 atoms and, for
+%
+%	True if ?AuthAtoms is a conjunction of auth/1 atoms and, for
 %	each atom auth(X), a rule (:- X, auth(X)) is present inthe
 %	conjonction of rules ExclRules.
 
@@ -521,11 +532,12 @@ auth_exclusion([A|L],((:- A, not auth(A)),Conj)) :-
 
 
 %%	gen_profile_asrules(?Profile, ?Profile_repr)
-%%	associate a profile and its representation in the merging
-%%	system. This representation consists in the rules ensuring
-%%      the production of answer sets, except that rules from the
-%%	KBs preventing model generation raise a spoiling atom instead
-%%      of violating a constraint.
+%
+%	associate a profile and its representation in the merging
+%	system. This representation consists in the rules ensuring the
+%	production of answer sets, except that rules from the KBs
+%	preventing model generation raise a spoiling atom instead of
+%	violating a constraint.
 
 gen_profile_asrules([],true).
 gen_profile_asrules([ic-Rules|KBs],Repr) :-
@@ -541,12 +553,12 @@ gen_profile_asrules([Name-Rules|KBs],Repr) :-
 	.
 
 %%	gen_as_rules(+Name,+Rules,-KBR)
-%%	Associate a Knowledge base with name Name and its
-%	representation in the merging system. This representation is a
-%	conjunction of rules allowing the generation of the answer sets
-%	of the Knowledge base. The rules defeated by the current
-%	interpretation generate a spoiling atom in the model (a "rule
-%	atom").
+%
+%	Associate a Knowledge base with name Name and its representation
+%	in the merging system. This representation is a conjunction of
+%	rules allowing the generation of the answer sets of the
+%	Knowledge base. The rules defeated by the current interpretation
+%	generate a spoiling atom in the model (a "rule atom").
 
 gen_as_rules(Name,(A,B),Repr) :-
 	% conjunction of rules
@@ -592,10 +604,11 @@ gen_as_rules(Name,Fact,ASRules) :-
 
 
 %%	gen_as_rules(+Rules,-KBR)
-%%	Associate a set of integrity constraints and its
-%	representation in the merging system. This representation is a
-%	conjunction of rules allowing the generation of the answer sets
-%	of the integrity constraints.
+%
+%	Associate a set of integrity constraints and its representation
+%	in the merging system. This representation is a conjunction of
+%	rules allowing the generation of the answer sets of the
+%	integrity constraints.
 
 gen_as_rules((A,B),Repr) :-
 	% conjunction of rules
@@ -622,7 +635,8 @@ gen_as_rules(Fact,(:- not Fact)) :-
 
 
 %%	auth(?AAtoms,?Atoms)
-%%	true if AAtoms is a conjunction of auth/1 atoms corresponding to
+%
+%	True if AAtoms is a conjunction of auth/1 atoms corresponding to
 %	Atoms.
 
 auth(true,true).
@@ -665,7 +679,8 @@ next_value(Counter, 1) :-
 	.
 
 %%	reset_rule_atoms(KBName)
-%%	Resets the counter used for the generation of rule atoms.
+%
+%	Resets the counter used for the generation of rule atoms.
 
 reset_rule_atoms(KBName) :-
 	nb_delete(KBName)
@@ -677,7 +692,8 @@ next_rule_atom(KBName, Atom) :-
 	.
 
 %%	collect_rule_atoms(+Profile,-RuleAtoms)
-%%	Collect all rule atoms for a given profile.
+%
+%	Collect all rule atoms for a given profile.
 
 collect_rule_atoms([],[]).
 collect_rule_atoms([KBName-_|Profile],RuleAtoms) :-
@@ -687,10 +703,11 @@ collect_rule_atoms([KBName-_|Profile],RuleAtoms) :-
 	.
 
 %%	record_rule(+KBName, +Ratom, +Rule)
-%%	records the association between a rule and its rule atom.
-%%	This will be used later on to generate the result.
-%%	We use the assert/1 mechanism in order to be fully non
-%%	deerminist, i.e. to allow queries with all possible patterns of
+%
+%	records the association between a rule and its rule atom.
+%	This will be used later on to generate the result.
+%	We use the assert/1 mechanism in order to be fully non
+%	deerminist, i.e. to allow queries with all possible patterns of
 %	instantiation of KBName, Ratom ans Rule.
 
 record_rule(KBName, RAtom, Rule) :-
@@ -698,17 +715,19 @@ record_rule(KBName, RAtom, Rule) :-
 	.
 
 %%	get_rules(+KBName,-Rule,-Atom)
-%%	True if the Rule corresponds to the rule atom Atom in the
-%%	specified knowledge base. There is an implicit hypothesis
-%%	that rules are not duplicated in a single knowledge base.
-%%	This hypothesis is necessary for the case +Rule, -Atom.
+%
+%	True if the Rule corresponds to the rule atom Atom in the
+%	specified knowledge base. There is an implicit hypothesis
+%	that rules are not duplicated in a single knowledge base.
+%	This hypothesis is necessary for the case +Rule, -Atom.
 
 get_rules(KBName, Rule, Atom) :-
 	rule(KBName,Atom,Rule)
 	.
 
 %%	erase_rules(+KBName)
-%%	Erases the rules for the given knowledge base.
+%
+%	Erases the rules for the given knowledge base.
 
 erase_rules(KBName) :-
 	\+ var(KBName),
@@ -716,8 +735,9 @@ erase_rules(KBName) :-
 	.
 
 %%	init_profile(+Profile)
-%%	various initializations. Must be called before any predicate in
-%%	this module.
+%
+%	various initializations. Must be called before any predicate in
+%	this module.
 
 init_profile(P) :-
         retractall(kbnames(_)),

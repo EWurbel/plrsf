@@ -135,7 +135,7 @@ helppage(_Request) :-
 				      'with removed set fusion operators ',
 				      'of profiles of logic programs.'
 				      ]),
-				   p(['PLRSF is fully described in [',a([href('#bib1'),id(nh1)],'1'), '].',
+				   p(['PLRSF is fully described in [',a([href('#bib1'),id(nh1)],'1'), ',', a([href('#bib2'),id(nh2)],'2'),'].',
 				      'It is a syntactic merging approach, which implements several merging strategies, namely:']),
 				   ul([
 				       li([strong('Sigma: '), 'the operator minimizes the total number of rules which must be '
@@ -149,6 +149,11 @@ helppage(_Request) :-
 					  ]),
 				       li([strong('GMax: '), 'is a lexicographic refinement of Max.'])
 				      ]),
+				   p(['Each qstrategy can lead to two different operators :']),
+				   ul([
+				       li([strong('strong merging :'), 'the goal of the merging operation is to restore stable models, i.e. it guarantees that the resulting program has at least one stable model.']),
+				       li([strong('weak merging :'), 'the goal of the merging operation is to restore HT-models, i.e. it guarantees that the resulting program has at least one HT-model.'])
+				       ]),
 				   h2('Input'),
 				   p(['The PLRSF demonstrator takes as input a profile, i.e. a multiset of logic programs, '
 				     ,'and an optionnal program which acts as a set of integrity constraints, i.e. rules which '
@@ -174,9 +179,17 @@ helppage(_Request) :-
 				     ]),
 				   div(class(bib),
 				       [h3('Bibliography'),
-					p(['[',a([href('#nh1'),id(bib1)],1),'] ',strong('Removed Set Fusion : Performing off the shelf'), ', '
-					  ,em('Julien HUE, Odile PAPINI, Éric WÜRBEL,'), 'European Conference on Artificial Intelligence, '
-					  ,'2008, Patras, Grèce, pages 94-98.'
+					p(['[',a([href('#nh1'),id(bib1)],1),'] ',strong('Extending belief base change to logic programs with ASP'), ', '
+					  ,em('Julien HUE, Odile PAPINI, Éric WÜRBEL,')
+					  ,'in : College Publications, Trends in Belief Revision and Argumentation Dynamics., Studies in Logic, '
+					  ,'2013, december, Eduardo L. Fermé, Dov M. Gabbay and Guillermo R. Simari, eds.'
+					  ]),
+					p(['[',a([href('#nh2'),id(bib2)],2),'] '
+					  , strong('Belief Bases Represented by Logic Programs')
+					  , ', '
+					  , em('Julien HUE, Odile PAPINI, Éric WÜRBEL,')
+					  , 'European Conference on Symbolic and Quantitative Approaches to Reasonning under Uncertainty (ECSQARU), '
+					  , '2009, Verona, Italy, pages 371-382.'
 					  ])
 				       ])
 
