@@ -45,6 +45,13 @@
 
 opt_spec([
 	  [
+	   opt(claspver), type(integer), default(4),
+	   shortflags([c]), longflags(['clasp-ver']),
+	   help([ 'clasp version. Accepted values are 3 and 4. Default is 4, meaning that the version of clasp'
+		, 'is 4 or up. Aggregate litterals and choice constructs have a different syntax depending'
+		, 'on the version number.'])
+	  ],
+	  [
 	   opt(file), type(atom), default('user_output'),
 	   shortflags([o]), longflags(['output']),
 	   help([ 'output destination. This can be either a file name or the atom'
@@ -55,7 +62,7 @@ opt_spec([
 	   shortflags([m]), longflags(['mode']),
 	   help([ 'Potential reoved sets mode:'
 		, '  weak:	weak potential removed sets (based on SE models)'
-		, '  strong:	strong potential removed sets (based on answer sets)'])
+		, '  strong:	strong potendtial removed sets (based on answer sets)'])
 	  ],
 	  [
 	   opt(strategy), type(atom), default(sigma),
@@ -107,6 +114,7 @@ go :-
 				% default mode : strong potential removed sets
 	nb_setval(mode,strong),
 	nb_setval(outprog,none),
+	nb_setval(claspver, 4),
 	process_args(Args,InputFiles),
 	print_start_state(InputFiles),
 	(InputFiles = [] ->
@@ -143,6 +151,7 @@ run_rsf(Strat, Mode, ResOpt, Profile, Results) :-
 	nb_setval(strategy,Strat),
 	nb_setval(mode,Mode),
 	nb_setval(results,ResOpt),
+	nb_setval(claspver, 4),
 	tmp_file(plrsf,TmpFile),
 	generate(Profile,TmpFile),
 	run_asp(TmpFile,Res),
@@ -161,6 +170,7 @@ test_rsf(Filenames,Strategy,Mode,RType) :-
 				% generate all programs
 	nb_setval(mode,Mode),
 	nb_setval(results,RType),
+	nb_setval(claspver, 4),
 	nb_setval(outprog,none),
 	tmp_file(plrsf,TmpFile),
 	load_profile(Filenames,Profile),
@@ -204,6 +214,7 @@ process_args(Args,Files) :-
 	opt_spec(Specs),
 	opt_parse(Specs,Args,Opts,Files,[output_functor(opt)]),
 	%% check
+	init_claspver_opt(Opts),
 	init_file_opt(Opts),
 	init_mode_opt(Opts),
 	init_strategy_opt(Opts),
@@ -211,13 +222,30 @@ process_args(Args,Files) :-
 	init_outprog_opt(Opts)
 	.
 
+%%	init_claspver_opt(+Opts)
+%
+%	Check and sets the clasp version option.
+%
+%	Throws a plrsf_exception if the version is unknown.
+
+init_claspver_opt(Opts) :-
+	member(opt(claspver,V), Opts),
+	member(V, [3,4]),
+	!,
+	nb_setval(claspver, V)
+	.
+init_claspver_opt(Opts) :-
+	member(opt(claspver,V), Opts),
+	error("unknown clasp version: ~w~n", [V])
+	.
+
 %%	init_file_opt(+Opts)
 %
 %	Sets the output file.
 
 init_file_opt(Opts) :-
-	member(opt(file,V),Opts),
-	nb_setval(file,V)
+	member(opt(file,V), Opts),
+	nb_setval(file, V)
 	.
 
 %%	init_strategy_opt(+Opts)
@@ -227,15 +255,14 @@ init_file_opt(Opts) :-
 %	Throws a plrsf_exception if the strategy is unknown.
 
 init_strategy_opt(Opts) :-
-	member(opt(strategy,V),Opts),
-	member(V,[sigma,card,max,gmax,inclmin,all]),
+	member(opt(strategy,V), Opts),
+	member(V,[sigma, card, max, gmax, inclmin, all]),
 	!,
-	nb_setval(strategy,V)
+	nb_setval(strategy, V)
 	.
 init_strategy_opt(Opts) :-
-	member(opt(strategy,V),Opts),
-	error("unknown strategy:  ~w~n", [V]),
-	fail
+	member(opt(strategy, V), Opts),
+	error("unknown strategy:  ~w~n", [V])
 	.
 
 %%	init_mode_opt(+Opts)
@@ -253,8 +280,7 @@ init_mode_opt(Opts) :-
 	.
 init_mode_opt(Opts) :-
 	member(opt(mode,V),Opts),
-	error("unknown mode:  ~w~n", [V]),
-	fail
+	error("unknown mode:  ~w~n", [V])
 	.
 
 %%	init_outprog_opt(+Opts)
@@ -280,8 +306,7 @@ init_results_opt(Opts) :-
 	.
 init_results_opt(Opts) :-
 	member(opt(results,V),Opts),
-	error("unknown results request:  ~w~n", [V]),
-	fail
+	error("unknown results request:  ~w~n", [V])
 	.
 
 %%	result_dir(+Profile,-Dir)
@@ -749,12 +774,23 @@ portray_conjunct(C) :-
 %%	Handle internal representations
 portray(Min // BList // Max) :-
 	% cardinality literals representation
-	write_term(Min,[max_depth(0),numbervars(true)]),
+	nb_getval(claspver, 3),
+	write_term(Min, [max_depth(0), numbervars(true)]),
 	write('{'),
 	plist(BList),
 	write('}'),
-	write_term(Max,[max_depth(0),numbervars(true)])
+	write_term(Max, [max_depth(0), numbervars(true)])
 	.
+portray(Min // BList // Max) :-
+	% cardinality literals representation
+	nb_getval(claspver, 4),
+	write_term(Min, [max_depth(0), numbervars(true)]),
+	write('{'),
+	plist2(BList),
+	write('}'),
+	write_term(Max, [max_depth(0), numbervars(true)])
+	.
+
 
 plist([]).
 plist([E]) :-
@@ -766,10 +802,21 @@ plist([E|L]) :-
 	write(','),
 	plist(L).
 
+plist2([]).
+plist2([E]) :-
+	!,
+	write(E)
+	.
+plist2([E|L]) :-
+	write(E),
+	write(';'),
+	plist2(L).
+
 
 
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%	test data
+%%	test data can be used in the web demo. Actually, test_profile2
+%	is used
 
 test_profile(['test/ex12-1.pl','test/ex12-2.pl']).
 test_profile2(['test/archeo1-1.pl','test/archeo1-2.pl','test/archeo1-3.pl','test/archeo1-ic.pl']).

@@ -337,8 +337,8 @@ size_base_pred(_,[],true,_).
 size_base_pred(VarName1,[Name|Names], Rules,I) :-
 	bagof(A,R^get_rules(Name,R,A),RAtoms), % collect rule atoms
 	I1 #= I+1,
-	conjoin((size('$VAR'(VarName1),I) :- '$VAR'(VarName1) // RAtoms // '$VAR'(VarName1)),Rs,Rules),
-	size_base_pred(VarName1,Names,Rs,I1)
+	size_base_pred(VarName1,Names,Rs,I1),
+	conjoin((size('$VAR'(VarName1),I) :- '$VAR'(VarName1) // RAtoms // '$VAR'(VarName1)),Rs,Rules)
 	.
 
 var_n(VName,Bound,Bound,['$VAR'(V)]) :-

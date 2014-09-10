@@ -28,11 +28,13 @@
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :-module(profileio,[
-		    load_profile/2,
-		    write_clauses/2,
-		    write_conjunct/2,
-		    read_wff_loop/3
-		   ]).
+	     load_profile/2,
+	     write_clauses/2,
+	     write_conjunct/2,
+	     read_wff_loop/3,
+	     write_clauses_to_atom/2,
+	     write_profile_to_atoms/2
+	 ]).
 
 :-use_module(utils).
 :-use_module(logic,[conjoin/3]).
@@ -99,8 +101,24 @@ write_conjunct(R,Stream) :-
 	nl(Stream)
 	.
 
+write_profile_to_atoms([],[]).
+write_profile_to_atoms([Name-Conjunct|KBs], [Name-Atom|ATs]) :-
+	write_clauses_to_atom(Conjunct, Atom),
+	write_profile_to_atoms(KBs, ATs)
+	.
 
+write_clauses_to_atom(Conjunct, Atom) :-
+	phrase(wca(Conjunct), Codes),
+	atom_codes(Atom, Codes).
 
+wca(Conjunct, In, Tail) :-
+	with_output_to(codes(In, Tail), wrconjunct(Conjunct))
+	.
+
+wrconjunct(Conjunct) :-
+	current_output(S),
+	write_conjunct(Conjunct, S)
+	.
 
 
 

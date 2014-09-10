@@ -48,10 +48,14 @@
 :- http_handler(root(kbinput), kbinput, []).
 :- http_handler(root(runsolver), runsolver, []).
 :- http_handler(css('demo_rsf.css'), http_reply_file(css_files('demo_rsf.css'), []), []).
-
+:- http_handler(icons('user-home.svg'), http_reply_file(icon_files('user-home.svg'), []), []).
+:- http_handler(icons('gnome-panel-launcher.svg'), http_reply_file(icon_files('gnome-panel-launcher.svg'), []), []).
+:- http_handler(icons('help-browser.svg'), http_reply_file(icon_files('help-browser.svg'), []), []).
+:- http_handler(icons('white.png'), http_reply_file(icon_files('white.png'), []), []).
 
 http:location(root, '/plrsfdemo', []).
 http:location(css, root(css), []).
+http:location(icons, root(icons), []).
 
 :- multifile user:file_search_path/2.
 
@@ -59,6 +63,12 @@ http:location(css, root(css), []).
 
 user:file_search_path(document_root,	'/home/wurbel/src/prolog/plrsf').
 user:file_search_path(css_files,	document_root(css)).
+user:file_search_path(icon_files,	document_root(icons)).
+
+%%	default examples, depending on the number of bases
+
+default_profile(3,['test/archeo1-1.pl','test/archeo1-2.pl','test/archeo1-3.pl','test/archeo1-ic.pl']).
+
 
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
@@ -96,24 +106,24 @@ server(Port) :-
 home(_Request) :-
 	reply_html_page(title('PLRSF demonstrator - Welcome'),
 			[
-			 \banner,
-			 \menu_bar,
-			 div(class(conteneur),
-			     [
-			      div(class(contenu),
-				  [
-				   h2('Welcome !'),
-				   p(['Welcome to the PLRSF demonstrator. ',
-				      'This demonstrator allows you to experiment ',
-				      'with removed set fusion of logic programs, which implements merging ',
-				      'operators over logic programs.'
-				      ]),
-				   p(['to run the demonstrator, choose ',
-				      '"run" in the menu above. To get some help, '
-				     ,'choose "help".'])
-				   ])
-			     ]),
-			 \footer
+			    \banner,
+			    \menu_bar,
+			    div(class(conteneur),
+				[
+				    div(class(contenu),
+					[
+					    h2('Welcome !'),
+					    p(['Welcome to the PLRSF demonstrator. ',
+					       'This demonstrator allows you to experiment ',
+					       'with removed set fusion of logic programs, which implements merging ',
+					       'operators over logic programs.'
+					      ]),
+					    p(['to run the demonstrator, choose ',
+					       '"run" in the menu above. To get some help, '
+					      ,'choose "help".'])
+					])
+				]),
+			    \footer
 			])
 	.
 
@@ -393,6 +403,28 @@ output_opt_label(rsets, 'Removed sets').
 mode_label(weak,	'Weak').
 mode_label(strong,	'Strong').
 
+%%	Read default example files and store them in a list. Each member
+%	of the list is of the form n/list (n is the KB number) or
+%	ic/list. Each list in turn is the list of terms in the KB.
+%
+
+get_default_profile(Nbases, List) :-
+	default_profile(Nbases, Files), % actually only one default profile with 3 bases
+	load_profile(Files, Profile),
+	write_profile_to_atoms(Profile, List)
+	.
+get_default_profile(Nbases, List) :-
+	nlist(Nbases,'',List)
+	.
+
+nlist(0,_,[]).
+nlist(N, A, [A|L]) :-
+	N1 #= N - 1,
+	nlist(N1, A, L)
+	.
+
+
+
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 %%	Page generation rules.
@@ -528,7 +560,11 @@ rsf_options -->
 %%	Serves a form allowing to input the belief bases in the profile.
 
 profile_input(NBKB) -->
-	{ http_link_to_id(runsolver,[],Ref) },
+	{
+           http_link_to_id(runsolver,[],Ref),
+           get_default_profile(NBKB, DefProf)
+        },
+
 	html([div(classform,
 		  [form([id(kbinput),
 			 action(Ref),
@@ -537,29 +573,43 @@ profile_input(NBKB) -->
 			],
 			[
 			 \rsf_options,
-			 \kb_input(NBKB),
+			 \kb_input(NBKB, DefProf),
 			 p(input([type(submit),value('Go')]))
 			])
 		  ])
 	     ])
 	.
 
-%%	Serves a control allowing to input a belief base.
+%%	kb_input(+BaseNum, +DefaultProfile, +In, -Tail)
+%%
+%%	Serves a control allowing to input a belief base. BaseNum is the
+%	current KB number. 0 eans that we deal with integrity
+%	constraints.
+%	The default profile is used to initialize the textareas used to
+%	input the bases. In some cases it provides an input example (at
+%	present only for the case where there are 3 bases).
 
-kb_input(0) -->
+kb_input(0, [ic-DefKB]) -->
 	html([p(label(for(ic),'Integrity Constraints (optional)')),
-	      p(textarea([id(ic),name(ic),rows(10),cols(80)],[]))])
+	      p(textarea([
+		    id(ic),name(ic),rows(10),cols(80),
+		    onfocus('selectAll(''ic'')')
+		],[DefKB]))])
 	.
-kb_input(N) -->
+kb_input(N,[DefName-DefKB|DefProf]) -->
 	{
 	  N > 0,
+          DefName \== ic,
 	  atomic_concat(base,N,Name),
 	  atomic_concat('Belief Base ',N,LabelText)
 	},
 	{ N1 #= N - 1 },
-	kb_input(N1),
+	kb_input(N1,DefProf),
 	html([p(label(for(Name),LabelText)),
-	      p(textarea([id(Name),name(Name),rows(10),cols(80)],[]))])
+	      p(textarea([
+		    id(Name),name(Name),rows(10),cols(80),
+		    onfocus('selectAll('''+Name+''')')
+		],[DefKB]))])
 	.
 
 
@@ -583,9 +633,24 @@ base_nb_input -->
 
 banner -->
 	html([\html_requires(css('demo_rsf.css')),
+	      \js_scripts,
 	      div(class(banner),
 		  h1('PLRSF Demonstrator'))
 	     ])
+	.
+
+%%	 serves javascripts
+
+js_scripts -->
+	html(script(type('text/javascript'),
+		    [
+			'function selectAll(id)\n',
+			'{\n',
+			'    document.getElementById(id).focus();\n',
+			'    document.getElementById(id).select();\n',
+			'}\n'
+		    ])
+	    )
 	.
 
 %%	Serves the menu of the demonstrator.
@@ -598,9 +663,18 @@ menu_bar -->
 	},
 	html(div(class(menu),
 		 [ul([
-		     li(a(href(HREF_HOME),'Home')),
-		     li(a(href(HREF_RUN),'Run')),
-		     li(a(href(HREF_HELP),'Help'))
+		      li([
+			  p(class(l1), a(href(HREF_HOME), img(src('icons/user-home.svg')))),
+			  p(class(l2), a(href(HREF_HOME), 'Home'))
+		      ]),
+		      li([
+			  p(class(l1), a(href(HREF_RUN),  img(src('icons/gnome-panel-launcher.svg')))),
+			  p(class(l2), a(href(HREF_RUN), 'Run'))
+		      ]),
+		      li([
+			  p(class(l1), a(href(HREF_HELP), img(src('icons/help-browser.svg')))),
+			  p(class(l2), a(href(HREF_HELP), 'Help'))
+		      ])
 		    ]),
 		  div(class(nettoyeur),[])
 		 ]))
