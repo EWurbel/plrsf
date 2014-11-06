@@ -52,8 +52,10 @@
 
 
 %%	pre(+Profile, -NewProfile)
+%%
 %%	NewProfile is Profile without duplicates if current strategy is
 %%	is card.
+
 pre(Profile,Profile) :-
 	nb_getval(strategy,S),
 	S \== card,
@@ -65,7 +67,9 @@ pre(Profile,NProfile) :-
 	.
 
 %%	remove_duplicates(+Profile,-NewProfile)
-%%	NewProfile is profile without duplicates.
+%%
+%%	NewProfile is Profile without duplicates.
+
 remove_duplicates([],[]).
 remove_duplicates([Name-Wff|KBs], [Name-Wff|FilteredKBs]) :-
 	rdup(KBs,Wff,NKBs),
@@ -96,6 +100,12 @@ rdup2([Name-KB|KBs],Rule,[Name-NewKB|NewKBs]) :-
 	rdup2(KBs,Rule,NewKBs)
 	.
 
+%%	equiv_rule_true(?R1,?R2,?R3)
+%%
+%%	R3 unifies with true if R1 and R2 are equivalent rules, i.e.
+%	they have the same and their bodies contain the same terms.
+%	R3 unifies with R1 if R1 and R2 are not equivalent.
+
 equiv_rule_true(R,R,true).
 equiv_rule_true((H :- B1), (H :- B2), true) :-
 	inc_body(B1,B2),
@@ -120,7 +130,9 @@ equiv_rule_true(T1,T2,T1) :-
 	.
 
 %%	inc_body(Body1,Body2)
+%%
 %%      True if Body1 is included in Body2.
+
 inc_body((A,B), Body2) :-
 	inc_body(A,Body2),
 	inc_body(B,Body2)
@@ -163,14 +175,16 @@ gen_strategy(inclmin, _, true).
 
 % sigma strategy
 
-gen_strategy(sigma, Profile, '#minimize' RAtoms) :-
-	collect_rule_atoms(Profile,RAtoms)
+gen_strategy(sigma, Profile, '#minimize' WL) :-
+	collect_rule_atoms(Profile,RAtoms),
+	simple_weight_list(RAtoms,WL)
 	.
 % card strategy. (same as sigma, the removal of duplicates
 % has been performed earlier).
 
-gen_strategy(card, Profile, '#minimize' RAtoms) :-
-	collect_rule_atoms(Profile,RAtoms)
+gen_strategy(card, Profile, '#minimize' WL) :-
+	collect_rule_atoms(Profile,RAtoms),
+	simple_weight_list(RAtoms,WL)
 	.
 % max strategy.
 % Be careful ! The rules generated here are not sufficient by themselve,
@@ -178,15 +192,15 @@ gen_strategy(card, Profile, '#minimize' RAtoms) :-
 % sets which are minimal w.r.t. set inclusion regarding rsf/2 atoms.
 
 gen_strategy(max, Profile, Repr) :-
-	max_rules(Profile,M),
-	domain(possible,'U',DomPoss),
-	fact_intrv(possible,0,M,Possible),
-	size_preds('U',Size),
-	max_size('U',MaxSize),
-	integer_enuml(1,M,AL),
-	integer_enum(1,M,L),
-	minimize(max/1,AL,L,Min),
-	n_conjoin([DomPoss,Possible,Size,MaxSize,Min],Repr)
+	max_rules(Profile, M),
+	domain(possible, 'U', DomPoss),
+	fact_intrv(possible, 0, M, Possible),
+	size_preds('U', possible, Size),
+	max_size('U', possible, MaxSize),
+	integer_enuml(1, M, AL),
+	integer_enum(1, M, L),
+	minimize(max/1, AL, L, Min),
+	n_conjoin([DomPoss, Possible, Size, MaxSize, Min], Repr)
 	.
 % gmax strategy
 % Be careful ! The rules generated here are not sufficient by themselve,
@@ -194,21 +208,49 @@ gen_strategy(max, Profile, Repr) :-
 % sets which are minimal w.r.t. set inclusion regarding rsf/2 atoms.
 
 gen_strategy(gmax, Profile, Repr) :-
-	length(Profile,N),
-	max_rules(Profile,M),
-	domain(possible,'U',DomPoss),
-	domain(base,'V',DomBase),
-	fact_intrv(possible,0,M,Possible),
-	fact_intrv(base,1,N,Base),
-	size_base_preds('U',Size),
-	max_size_lex(N,Max),
-	gmax_minimize_list(M,N,MinList),
-	n_conjoin([DomPoss,DomBase,Possible,Base,Size,Max,
-		   '#minimize' MinList],Repr)
+	length(Profile, N),
+	max_rules(Profile, M),
+	domain(possible, 'U', DomPoss),
+	domain(base, 'V', DomBase),
+	fact_intrv(possible, 0, M, Possible),
+	fact_intrv(base, 1, N, Base),
+	size_base_preds('U', possible, Size),
+	max_size_lex(N, Max),
+	gmax_minimize_list(M, N, MinList),
+	n_conjoin([DomPoss, DomBase, Possible, Base, Size, Max,
+		   '#minimize' MinList], Repr)
 	.
 
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%	Generation auxiliary predicates.
+%%	Generation auxiliary predicates
+
+
+%%	simple_weight_list(?Atoms, ?WeightedAtoms)
+%%
+%%	WeightedAtoms is a list of weighted atoms for
+%	clingo/gringo #minimize statements. Weights are all considered
+%	to be equal to 1. For clingo versions <=3, the two lists are the
+%	same. For clingo versions >=4, each atom a generates a weighted
+%	atom 1@a:a.
+
+simple_weight_list(Atoms, Atoms) :-
+	nb_getval(claspver, 3)
+	.
+simple_weight_list(Atoms, WL) :-
+	nb_getval(claspver, V), V #>= 4,
+	swl(Atoms, WL)
+	.
+
+swl([], []).
+swl([A|AL], [(1,A:A)|WL]) :-
+	swl(AL, WL)
+	.
+
+%%	rule_atoms_exclusion(?Rules)
+%%
+%%	True if Rules represents the rule atoms exclusion rules for the
+%	current belief profile. These rules are only needed to compute
+%	all the potential removed sets.
 
 rule_atoms_exclusion(Rules) :-
 	bagof(A,Name^R^get_rules(Name,R,A),RAtoms), % collect rule atoms
@@ -237,7 +279,12 @@ rule_atoms_excl([A|L],Rules) :-
 %	S_n + S_(n-1) * (m+1)^1 + ... + S_1 * (m+1)^(n-1)
 
 gmax_minimize_list(M,N,L) :-
+	nb_getval(claspver, 3),
 	gmax_minimize_list(M,N,N,L)
+	.
+gmax_minimize_list(M,N,L) :-
+	nb_getval(claspver, V), V #>= 4,
+	gmax_minimize_list2(M,N,N,L)
 	.
 
 gmax_minimize_list(_,_,0,[]).
@@ -262,15 +309,51 @@ gmax_n(M,J,N,I,[Term=V|L]) :-
 	gmax_n(M,J1,N,I,L)
 	.
 
+gmax_minimize_list2(_,_,0,[]).
+gmax_minimize_list2(M,N,I,L) :-
+	gmax_n2(M,M,N,I,L1),
+	I1 #= I-1,
+	append(L1,L2,L),
+	gmax_minimize_list2(M,N,I1,L2)
+	.
+
+%%	Version for gringo 4 and up. The minimize syntax has changed.
+%%	old : #minimize [ l=w, ... ]. new : #minimize { w : l; ... }.
+%%	(what is nice with standards is that there are so many to choose
+%	from...)
+
+gmax_n2(_,0,_,I,[(V,Term:Term)]) :-
+	!,
+	concatenate(max,I,Functor),
+	Term =.. [Functor,0],
+	V #= 0
+	.
+gmax_n2(M,J,N,I,[(V,Term:Term)|L]) :-
+	concatenate(max,I,Functor),
+	Term =.. [Functor,J],
+	V #= J * (M + 1) ^ (N - I),
+	J1 #= J - 1,
+	gmax_n2(M,J1,N,I,L)
+	.
+
+
 %%	minimize(?Pred, ?ArgsList, ?WeightList, ?Repr)
+%%
 %%	Repr unifies with a #minimize statement on Pred (which is in
 %%      the form predicate_name/arity) with arguments in ArgList
 %%      and weights in wheightlist
 
 minimize(PredSpec,ArgsL,WL,'#minimize' L) :-
+	nb_getval(claspver, 3),
 	length(ArgsL,Len),
 	length(WL,Len),
 	weight_list(PredSpec,ArgsL,WL,L)
+	.
+minimize(PredSpec,ArgsL,WL,'#minimize' L) :-
+	nb_getval(claspver, V), V #>= 4,
+	length(ArgsL,Len),
+	length(WL,Len),
+	weight_list2(PredSpec,ArgsL,WL,L)
 	.
 
 weight_list(_,[],[],[]).
@@ -280,66 +363,140 @@ weight_list(Pred/Arity,[A|AL],[W|WL],[Inst=W|SL]) :-
 	weight_list(Pred/Arity,AL,WL,SL)
 	.
 
+%%	Version for gringo 4 and up. The minimize syntax has changed.
+%%	old : #minimize [ l=w, ... ]. new : #minimize { w : l; ... }.
+%%	(what is nice with standards is that there are so many to choose
+%	from...)
+
+weight_list2(_,[],[],[]).
+weight_list2(Pred/Arity,[A|AL],[W|WL],[(W,Inst:Inst)|SL]) :-
+	length(A,Arity),
+	Inst =.. [Pred|A],
+	weight_list2(Pred/Arity,AL,WL,SL)
+	.
+
 %%	domain(PredName, VarName, DomainDirective)
+%%
 %%	true if DomainDirective is a clasp #domain directive over
-%%	predicate PredName for variable VarName.
+%%	predicate PredName for variable VarName. grigo/clingo version
+%	4.x prohibits such constructs, thus in this case DomainDirective
+%	unifies with true.
 
 domain(PN, Arg, '#domain' Func) :-
+	nb_getval(claspver, 3),
 	Func =.. [PN,'$VAR'(Arg)]
+	.
+domain(_,_,true) :-
+	nb_getval(claspver, V),
+	V #>= 4
 	.
 
 %%	fact_intrv(PredName,Min,Max,Fact)
+%%
 %%	Generate a fact with one argument ranging in the interval
 %%	Min..Max.
+
 fact_intrv(Pred,Min,Max,F) :-
 	F =.. [Pred,Min .. Max]
 	.
 
-%%	size_preds(?VarName,?Repr)
+%%	size_preds(?VarName, ?DomPred, ?Repr)
+%%
 %%	Repr unifies the rule representing a size/1 predicate over
 %%	variable VarName. This is used by the Max strategy.
 
-size_preds(VarName,Repr) :-
+size_preds(VarName, _, Repr) :-
+	nb_getval(claspver, 3),
 	kbnames(KBNames),
 	size_pred(VarName,KBNames,Repr)
 	.
-
-size_pred(_,[],true).
-size_pred(VarName,[Name|Names],Rules) :-
-	bagof(A,R^get_rules(Name,R,A),RAtoms),
-	conjoin((size('$VAR'(VarName)) :- '$VAR'(VarName) // RAtoms // '$VAR'(VarName)),Rs,Rules),
-	size_pred(VarName,Names,Rs)
+size_preds(VarName, DomPred, Repr) :-
+	nb_getval(claspver, V), V #>= 4,
+	kbnames(KBNames),
+	size_pred(VarName, DomPred, KBNames,Repr)
 	.
 
-%%	max_size(?VarName,?Rules)
+size_pred(_, [], true).
+size_pred(VarName, [Name|Names], Rules) :-
+	bagof(A, R^get_rules(Name,R,A), RAtoms),
+	size_pred(VarName, Names, Rs),
+	conjoin((size('$VAR'(VarName)) :- '$VAR'(VarName) // RAtoms // '$VAR'(VarName)), Rs, Rules)
+	.
+
+size_pred(_, _, [], true).
+size_pred(VarName, DomPred, [Name|Names], Rules) :-
+	bagof(A, R^get_rules(Name,R,A), RAtoms),
+	DomCall =.. [DomPred, '$VAR'(VarName)],
+	size_pred(VarName, DomPred, Names, Rs),
+	conjoin((size('$VAR'(VarName)) :- DomCall, '$VAR'(VarName) // RAtoms // '$VAR'(VarName)), Rs, Rules)
+	.
+
+
+%%	max_size(?VarName, ?DomPred, ?Rules)
+%%
 %%	Rules unifies with the conjunction of rules defining the max/
 %%	predicate over variable VarName. This is used by the Max
-%	Strategy
+%	Strategy.
 
-max_size(U,Clauses) :-
+max_size(U, _, Clauses) :-
+	nb_getval(claspver, 3),
 	domain(possible,'W',DomW),
 	n_conjoin([DomW,
 		   (negmax('$VAR'('W')) :- size('$VAR'(U)), '$VAR'(U) > '$VAR'('W')),
 		   (max('$VAR'(U)) :- size('$VAR'(U)), not negmax('$VAR'(U)))], Clauses)
 	.
-
-%%	size_base_preds(?VN1, ?Repr)
-%%	Repr unifies with the conjunction of rules size/2 defined over
-%	variables VN1 and an index in range 1..number of bases in the
-%	profile. This is used by the gmax strategy.
-
-size_base_preds(VarName1,Repr) :-
-	kbnames(KBNames),
-	size_base_pred(VarName1,KBNames,Repr,1)
+max_size(U, DomPred, Clauses) :-
+	nb_getval(claspver, V), V #>= 4,
+	DomCallU =.. [DomPred, '$VAR'(U)],
+	DomCallW =.. [DomPred, '$VAR'('W')],
+	n_conjoin([
+	    (negmax('$VAR'('W')) :-
+	        DomCallU, DomCallW, size('$VAR'(U)), '$VAR'(U) > '$VAR'('W')),
+	    (max('$VAR'(U)) :-
+	        DomCallU, size('$VAR'(U)), not negmax('$VAR'(U)))
+	], Clauses)
 	.
 
-size_base_pred(_,[],true,_).
+%%	size_base_preds(?VN1, ?DomPred, ?Repr)
+%%
+%%	Repr unifies with the conjunction of rules size/2 defined over
+%	variables VN1 and an index in range 1..number of bases in the
+%	profile. This is used by the gmax strategy. VN1 variable ranges
+%	in domain predicate DomPred.
+
+size_base_preds(VarName1, _, Repr) :-
+	nb_getval(claspver, 3),
+	kbnames(KBNames),
+	size_base_pred(VarName1, KBNames, Repr, 1)
+	.
+size_base_preds(VarName1, DomPred, Repr) :-
+	nb_getval(claspver, V), V #>= 4,
+	kbnames(KBNames),
+	size_base_pred(VarName1, DomPred, KBNames, Repr, 1)
+	.
+
+%%	for gringo version 3 and less : VarName1 is constrained by
+%	#domain
+
+size_base_pred(_, [], true, _).
 size_base_pred(VarName1,[Name|Names], Rules,I) :-
 	bagof(A,R^get_rules(Name,R,A),RAtoms), % collect rule atoms
 	I1 #= I+1,
 	size_base_pred(VarName1,Names,Rs,I1),
 	conjoin((size('$VAR'(VarName1),I) :- '$VAR'(VarName1) // RAtoms // '$VAR'(VarName1)),Rs,Rules)
 	.
+
+%%	For gringo version 4 and up : no more #domain
+
+size_base_pred(_, _, [], true, _).
+size_base_pred(VarName1, DomPred, [Name|Names], Rules, I) :-
+	bagof(A,R^get_rules(Name,R,A),RAtoms), % collect rule atoms
+	I1 #= I+1,
+	DomCall =.. [DomPred, '$VAR'(VarName1)],
+	size_base_pred(VarName1, DomPred, Names, Rs, I1),
+	conjoin((size('$VAR'(VarName1),I) :- DomCall, '$VAR'(VarName1) // RAtoms // '$VAR'(VarName1)),Rs,Rules)
+	.
+
 
 var_n(VName,Bound,Bound,['$VAR'(V)]) :-
 	!,
@@ -353,9 +510,10 @@ var_n(VName,N,Bound,['$VAR'(V)|L]) :-
 	.
 
 %%	funct_n(+Functor,+VarName,+Bound,-Term)
+%%
 %%	Term is unified with a Functor/Bound term, each argument being a
 %%	'$VAR'(Xn) Xn being a variable name build out of VarName
-%%	concatenated with a indeex ranging from 1 to Bound.
+%%	concatenated with a index ranging from 1 to Bound.
 %%	e.g. :
 %%	funct_n(f,'V',3,T)
 %%	T = f(V1, V2, V3)
@@ -366,6 +524,7 @@ funct_n(FctName,Var,N,Term) :-
 	.
 
 %%	size2_n(+Inf,+Sup,+VName1,+VName2,-Term)
+%%
 %%	Term is a conjunction of size/2 terms buils as for the following
 %%	example :
 %%	size2_n(1, 4, 'X', 'Y', T)
@@ -386,6 +545,7 @@ size2_n(N,Bound,V1,V2,Conj) :-
 	.
 
 %%	chain_op(+operator,+Min,+Max,+VarName,-Term)
+%%
 %%	Term unifies with a conjunction of op/2 terms which are
 %%	"chaining" indexed variables.
 %%	example:
@@ -409,6 +569,7 @@ chain_op(Op,N1,N,V,Conj) :-
 	.
 
 %%	all_op(+operator,+Min,+Max,+VarName,-Term)
+%%
 %%	Term unifies with a conjunction of op/2 terms which are
 %%	applied to all possible combinings of indexed variables, except
 %%	reflexivity cases.
@@ -464,6 +625,7 @@ all_op2(Op,I,J,N,V,Term) :-
 
 
 %%	chain_ge(+Min,+Max,+VarName,-Term)
+%%
 %%	This a a specialized version of the chain_op predicate for the
 %%	functor >=/2.
 
@@ -482,6 +644,7 @@ chain_ge(N1,N,V,Conj) :-
 	.
 
 %%	max_size_lex_n(+Min,+Max,-Rules)
+%%
 %%	Rules unifies with a conjunction of rules which defines the
 %%	maxi/1 predicates for i in{Min...Max}. Used by gmax strategy.
 
@@ -507,6 +670,7 @@ max_size_lex_n(N1,N,Conj) :-
 	.
 
 %%	max_size_lex(+NbBases, -Rules)
+%%
 %%	Rules unifies with the definition of max/NbBases and size/2
 %%	predicates which are needed by the gmax strategy.
 
@@ -525,10 +689,12 @@ max_size_lex(N,Max) :-
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Miscellaneous rsf-related predicates
 
-%%	max_formulae(Profile,S)
+%%	max_rules(+Profile, ?S)
+%%
 %%	True if S is the size of the biggest base in the Profile.
 
 max_rules(P,S) :-
+	\+ var(P),
 	max_rules(P,0,S)
 	.
 

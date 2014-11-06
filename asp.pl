@@ -44,10 +44,6 @@
 :-use_module(library(clpfd)).
 
 
-%%	Starting command for ASP solver.
-
-solver_start(path(clingo)).
-
 
 %%	run(+File,-Results)
 %
@@ -76,9 +72,14 @@ run(File,Results) :-
 run(File,Results,[]) :-
 	run(File,Results,[opt(none)]).
 run(File,Results,[Opt]) :-
-	solver_start(Path),
+	nb_getval(clasppath, Path),
 	% --opt-mode=optN is the new syntax of --opt-all (clingo 4.4.0)
-	process_create(Path, [0, '--opt-mode=optN',File], [stdout(pipe(PH)),detached(true)]),
+	nb_getval(claspver, V),
+	(   V #= 3
+	->  OPTOPT = '--opt-all'
+	;   OPTOPT = '--opt-mode=optN'
+	),
+	process_create(Path, [0, OPTOPT,File], [stdout(pipe(PH)),detached(true)]),
 	collect_results(PH,Results1),
 	close(PH,[force(true)]), % hack
 	post_process(Results1,Results,Opt)
@@ -128,8 +129,12 @@ collect_results(Stream,Results) :-
 	    (	R = end ->
 	        Results = [];
 	        % true
-	        Results = [R|Results1],
-	        collect_results(Stream,Results1)
+	        (   R = garbage ->
+		    collect_results(Stream, Results);
+		    % true
+	            Results = [R|Results1],
+	            collect_results(Stream,Results1)
+		)
 	    )
 	)
 	.
@@ -256,6 +261,17 @@ parse_result_line(Line,R) :-
 	phrase(result_line(R),Line,_)
 	.
 
+result_line(garbage) -->
+	['c','l','i','n','g','o'], space ,['v','e','r','s','i','o','n'], space,
+	versionspec(_)
+	.
+result_line(garbage) -->
+	['R','e','a','d','i','n','g'], space, ['f','r','o','m'], space,
+	dirspec(_)
+	.
+result_line(garbage) -->
+	['S','o','l','v','i','n','g','.','.','.']
+	.
 result_line(answer_num(Num)) -->
 	answernum(Num)
 	.
@@ -272,6 +288,29 @@ result_line(as(AS)) -->
 	answer_set(AS)
 	.
 
+%%	version specification (unused for now)
+
+versionspec([V|VS]) -->
+	number(V),
+	subversion(VS).
+
+subversion([V|VS]) -->
+	['.'],
+	number(V),
+	subversion(VS)
+	.
+subversion([]) -->
+	[]
+	.
+
+dirspec([C|DS]) -->
+	[C],
+	{\+ char_type(C, space)},
+	dirspec(DS)
+	.
+dirspec([]) -->
+	[]
+	.
 
 %%	Interpret the "Answer:" lines of clingo output.
 answernum(Num) -->
@@ -290,10 +329,22 @@ answer_set([T|L]) -->
 	 LT \= [],
 	 chars_to_term(LT,T)
 	},
-	[' '],
-	answer_set(L)
+	end_answer_set(L)
 	.
-answer_set([]) -->
+
+end_answer_set([T|L]) -->
+	[' '],
+	term(LT),
+	{
+	    LT \= [],
+	    chars_to_term(LT, T)
+	},
+	end_answer_set(L)
+	.
+end_answer_set([]) -->
+	[' ']
+	.
+end_answer_set([]) -->
 	[]
 	.
 

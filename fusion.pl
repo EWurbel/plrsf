@@ -29,7 +29,9 @@
 		    flatten_conjunction/2
 		   ]).
 :-use_module(asp,[run/2,
-		  run/3]).
+		  run/3,
+		  op(900,fy,'#minimize')
+		 ]).
 :-use_module(profileio,[
 			load_profile/2,
 			write_clauses/2,
@@ -45,11 +47,21 @@
 
 opt_spec([
 	  [
+	   opt(clasppath), type(term), default(path(clingo)),
+	   shortflags([c]), longflags(['clasp-path']),
+	   help([ 'clasp path. Accepted values are either a pathname, relative'
+		, 'or absolute, or a term of the form path(exe), where exe'
+		, 'is the name of the executable. The executable is then'
+		, 'searched among the directories specified in the PATH'
+		, 'environment variable.'])
+	  ],
+	  [
 	   opt(claspver), type(integer), default(4),
-	   shortflags([c]), longflags(['clasp-ver']),
-	   help([ 'clasp version. Accepted values are 3 and 4. Default is 4, meaning that the version of clasp'
-		, 'is 4 or up. Aggregate litterals and choice constructs have a different syntax depending'
-		, 'on the version number.'])
+	   shortflags([v]), longflags(['clasp-ver']),
+	   help([ 'clasp version. Accepted values are 3 and 4. Default is 4,'
+		, 'meaning that the version of clasp is 4 or up. Aggregate'
+		, 'litterals and choice constructs have a different syntax'
+		, 'depending on the version number.'])
 	  ],
 	  [
 	   opt(file), type(atom), default('user_output'),
@@ -103,7 +115,8 @@ opt_spec([
 
 go :-
 	current_prolog_flag(argv, [_|Args]),
-% Args = ['--mode', strong, '--strategy', max, '--results', arsets, 'test/ex12-1.pl', 'test/ex12-2.pl'],
+%	 Args = ['--results', arsets, '--clasp-ver', 3, '--clasp-path',
+%	 '/home/wurbel/'test/ex12-1.pl', 'test/ex12-2.pl'],
 				% output file (default standard output)
 	nb_setval(file,user_output),
 				% default strategy (default sigma)
@@ -115,6 +128,7 @@ go :-
 	nb_setval(mode,strong),
 	nb_setval(outprog,none),
 	nb_setval(claspver, 4),
+	nb_setval(clasppath, path(clingo)),
 	process_args(Args,InputFiles),
 	print_start_state(InputFiles),
 	(InputFiles = [] ->
@@ -152,6 +166,7 @@ run_rsf(Strat, Mode, ResOpt, Profile, Results) :-
 	nb_setval(mode,Mode),
 	nb_setval(results,ResOpt),
 	nb_setval(claspver, 4),
+	nb_setval(clasppath, path(clingo)),
 	tmp_file(plrsf,TmpFile),
 	generate(Profile,TmpFile),
 	run_asp(TmpFile,Res),
@@ -171,6 +186,7 @@ test_rsf(Filenames,Strategy,Mode,RType) :-
 	nb_setval(mode,Mode),
 	nb_setval(results,RType),
 	nb_setval(claspver, 4),
+	nb_setval(clasppath, path(clingo)),
 	nb_setval(outprog,none),
 	tmp_file(plrsf,TmpFile),
 	load_profile(Filenames,Profile),
@@ -214,6 +230,7 @@ process_args(Args,Files) :-
 	opt_spec(Specs),
 	opt_parse(Specs,Args,Opts,Files,[output_functor(opt)]),
 	%% check
+	init_clasppath_opt(Opts),
 	init_claspver_opt(Opts),
 	init_file_opt(Opts),
 	init_mode_opt(Opts),
@@ -221,6 +238,21 @@ process_args(Args,Files) :-
 	init_results_opt(Opts),
 	init_outprog_opt(Opts)
 	.
+
+%%	init_clasppath_opt(+Opts)
+%
+%	Check and sets the clasp path option.
+
+init_clasppath_opt(Opts) :-
+	member(opt(clasppath, V), Opts),
+	!,
+	(   V = file(F)
+	->  true
+	;   V = F
+	),
+	nb_setval(clasppath, F)
+	.
+
 
 %%	init_claspver_opt(+Opts)
 %
@@ -783,12 +815,18 @@ portray(Min // BList // Max) :-
 	.
 portray(Min // BList // Max) :-
 	% cardinality literals representation
-	nb_getval(claspver, 4),
+	nb_getval(claspver, V), V #>= 4,
 	write_term(Min, [max_depth(0), numbervars(true)]),
 	write('{'),
 	plist2(BList),
 	write('}'),
 	write_term(Max, [max_depth(0), numbervars(true)])
+	.
+portray('#minimize' L) :-
+	nb_getval(claspver, V), V #>= 4,
+	write('#minimize {'),
+	plist2(L),
+	write('}')
 	.
 
 
@@ -827,7 +865,7 @@ test_profile2(['test/archeo1-1.pl','test/archeo1-2.pl','test/archeo1-3.pl','test
 
 test12 :-
 	test_profile(Prof),
-	test_rsf(Prof,max,weak,rsets).
+	test_rsf(Prof,sigma,strong,rsets).
 
 
 

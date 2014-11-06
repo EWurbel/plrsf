@@ -51,6 +51,7 @@
 
 
 %%	conjoin(?A, ?B, ?C)
+%%
 %%	C unifies with the conjunction of A and B. Conjonction is
 %%	represented à la prolog, that is with a comma.
 %%	(from Mark Stickel's PTTP)
@@ -74,6 +75,7 @@ conjoin(A,B,C) :-
                 C = (A , B).
 
 %%	n_conjoin(?List, ?C)
+%%
 %%	unbounded arity version of conjoin/3.
 
 n_conjoin([],true).
@@ -83,6 +85,7 @@ n_conjoin([C|L],Conj) :-
 	.
 
 %%	apply_to_conjuncts(?Wff,+P,?Wff1)
+%%
 %%	apply P/2 predicate to each conjunt in Wff and Wff1.
 %%	That is, for all conjunct X,Y in Wff, call P(X,X1), P(Y,Y1), and
 %%	then conjunct X1 and Y1 to build Wff1 (from Mark Stickel's PTTP)
@@ -97,6 +100,7 @@ apply_to_conjuncts(Wff,P,Wff1) :-
 	.
 
 %%	apply_to_conjuncts(?Wff,+P, ?Arg, ?Wff1)
+%%
 %%	Same as apply_to_conjuncts/3, but each call to P is of the form
 %%	P(X,Arg,Y), where X is in Wff. See apply_to_conjuncts/3 for more
 %%	info.
@@ -111,6 +115,7 @@ apply_to_conjuncts(Wff,P,Arg,Wff1) :-
 	.
 
 %%	flatten_conjunction(+Wff,-FWff)
+%%
 %%	FWff is unified with the flattened version of Wff.
 %%	(from Mark Stickel's PTTP)
 
@@ -128,6 +133,7 @@ flatten_conjunction( Wff, AWff, FWff ) :-
 	      .
 
 %%	conjunct_size(C, S)
+%%
 %%	True if S is the size of the conjunction C. The conjunction
 %	needs to be flat, eg : (r1, (r2, ...(r(n-1),rn)...))
 

@@ -68,7 +68,7 @@ user:file_search_path(icon_files,	document_root(icons)).
 %%	default examples, depending on the number of bases
 
 default_profile(3,['test/archeo1-1.pl','test/archeo1-2.pl','test/archeo1-3.pl','test/archeo1-ic.pl']).
-
+default_profile(2,['test/ex16-1.pl','test/ex16-2.pl','test/ex16-ic.pl']).
 
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
@@ -97,6 +97,7 @@ max_bases(5).
 %%	Start the server on the given port.
 
 server(Port) :-
+	html_set_options([dialect(xhtml)]),
         http_server(http_dispatch, [port(Port)]).
 
 
@@ -417,8 +418,8 @@ get_default_profile(Nbases, List) :-
 	nlist(Nbases,'',List)
 	.
 
-nlist(0,_,[]).
-nlist(N, A, [A|L]) :-
+nlist(0, A, [ic-A]).
+nlist(N, A, [N-A|L]) :-
 	N1 #= N - 1,
 	nlist(N1, A, L)
 	.
@@ -532,14 +533,14 @@ rsf_options -->
 	    p([label([for='mode'],'Merging mode'),
 	       select([name(mode),id(mode)],
 		      [
-		       option([selected,value(strong)], 'Strong'),
+		       option([selected(selected),value(strong)], 'Strong'),
 		       option([value(weak)], 'Weak')
 		      ])
 	      ]),
 	    p([label([for='strategy'],'Merging strategy'),
 	       select([name(strategy),id(strategy)],
 		      [
-		       option([selected,value(sigma)], 'Sigma'),
+		       option([selected(selected),value(sigma)], 'Sigma'),
 		       option([value(card)], 'Card'),
 		       option([value(max)], 'Max'),
 		       option([value(gmax)], 'GMax'),
@@ -550,7 +551,7 @@ rsf_options -->
 	    p([label([for='result'],'Result type'),
 	       select([name(result),id(result)],
 		      [
-		       option([selected,value(all)], 'All belief bases'),
+		       option([selected(selected),value(all)], 'All belief bases'),
 		       option([value(rsets)], 'Removed sets')
 		      ])
 	      ])
@@ -565,7 +566,7 @@ profile_input(NBKB) -->
            get_default_profile(NBKB, DefProf)
         },
 
-	html([div(classform,
+	html([div(class(form),
 		  [form([id(kbinput),
 			 action(Ref),
 			 method('POST'),
@@ -574,7 +575,9 @@ profile_input(NBKB) -->
 			[
 			 \rsf_options,
 			 \kb_input(NBKB, DefProf),
-			 p(input([type(submit),value('Go')]))
+			 p(input([type(submit),value('Go'),onclick('document.body.className = ''wait''; return true')]))
+%			 p(input([type(submit),value('Go')]))
+
 			])
 		  ])
 	     ])

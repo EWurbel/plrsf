@@ -27,7 +27,6 @@
 :- ensure_loaded('webdemo.pl').
 
 run :-
-	html_set_options([dialect(xhtml)]),
 	server(5000),
 	thread_get_message(stop).
 

@@ -714,7 +714,7 @@ record_rule(KBName, RAtom, Rule) :-
 	assert(rule(KBName,RAtom,Rule))
 	.
 
-%%	get_rules(+KBName,-Rule,-Atom)
+%%	get_rules(?KBName,?Rule,?Atom)
 %
 %	True if the Rule corresponds to the rule atom Atom in the
 %	specified knowledge base. There is an implicit hypothesis
