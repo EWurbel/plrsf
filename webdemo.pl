@@ -1,7 +1,7 @@
 %% -*- prolog -*-
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%% Copyright 2012-2014 Éric Würbel, LSIS-CNRS, Université de Toulon.
+%% Copyright 2012-2015 Éric Würbel, LSIS-CNRS, Université de Toulon.
 %%
 %% This file is part of PLRsf-solver.
 %% PLRsf-Solver is free software: you can redistribute it and/or
@@ -35,6 +35,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_mime_plugin)).
 :- use_module(library(http/http_client)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_path)).
 :- use_module(library(uri)).
 
@@ -563,12 +564,13 @@ rsf_options -->
 profile_input(NBKB) -->
 	{
            http_link_to_id(runsolver,[],Ref),
+           http_relative_path(Ref,RelRef),
            get_default_profile(NBKB, DefProf)
         },
 
 	html([div(class(form),
 		  [form([id(kbinput),
-			 action(Ref),
+			 action(RelRef),
 			 method('POST'),
 			 enctype('multipart/form-data')
 			],
@@ -620,9 +622,12 @@ kb_input(N,[DefName-DefKB|DefProf]) -->
 %	the profile.
 
 base_nb_input -->
-	{ http_link_to_id(kbinput,[],Ref) },
+	{
+	  http_link_to_id(kbinput,[],Ref),
+          http_relative_path(Ref,RelRef)
+	},
 	html(div(class=form,
-		 [form([id(kbnbinput),action(Ref)],
+		 [form([id(kbnbinput),action(RelRef)],
 		       [
 			label(for(nbases),'Number of bases in the profile: '),
 			input([type(text),name(basenb),id(nbases),size(2)]),
@@ -661,8 +666,11 @@ js_scripts -->
 menu_bar -->
 	{
 	  http_link_to_id(home,[],HREF_HOME),
+%          http_relative_path(HREF_HOME,REL_HREF_HOME),
 	  http_link_to_id(run,[],HREF_RUN),
-	  http_link_to_id(helppage,[],HREF_HELP)
+          http_relative_path(HREF_RUN,REL_HREF_RUN),
+	  http_link_to_id(helppage,[],HREF_HELP),
+          http_relative_path(HREF_HELP,REL_HREF_HELP)
 	},
 	html(div(class(menu),
 		 [ul([
@@ -671,12 +679,12 @@ menu_bar -->
 			  p(class(l2), a(href(HREF_HOME), 'Home'))
 		      ]),
 		      li([
-			  p(class(l1), a(href(HREF_RUN),  img(src('icons/gnome-panel-launcher.svg')))),
-			  p(class(l2), a(href(HREF_RUN), 'Run'))
+			  p(class(l1), a(href(REL_HREF_RUN),  img(src('icons/gnome-panel-launcher.svg')))),
+			  p(class(l2), a(href(REL_HREF_RUN), 'Run'))
 		      ]),
 		      li([
-			  p(class(l1), a(href(HREF_HELP), img(src('icons/help-browser.svg')))),
-			  p(class(l2), a(href(HREF_HELP), 'Help'))
+			  p(class(l1), a(href(REL_HREF_HELP), img(src('icons/help-browser.svg')))),
+			  p(class(l2), a(href(REL_HREF_HELP), 'Help'))
 		      ])
 		    ]),
 		  div(class(nettoyeur),[])
