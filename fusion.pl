@@ -43,6 +43,13 @@
 
 :-use_module(library(clpfd)).
 
+%%	transition to swi-prolog 7.2 strings
+
+:-multifile check:valid_string_goal/1.
+
+check:valid_string_goal(utils:error(S)) :- string(S).
+check:valid_string_goal(utils:error(S,_)) :- string(S).
+
 %%	Command line options specification.
 
 opt_spec([
