@@ -8,7 +8,6 @@
 #+LATEX_HEADER: \usepackage{lmodern}
 #+LATEX_HEADER: \usepackage{listings}
 #+LATEX_HEADER: \newcommand{\cad}{c.-à-d.{}}
-# #+LaTeX_HEADER: \titlehead{Année 2014--2015\hfill{}Aix-Marseille Université --- IUT RT 1A}
 
 * Introduction
 
@@ -140,10 +139,11 @@ ProxyPassReverse /pldoc/ http://localhost:4000/pldoc/
 plrsf [options] files...
 #+END_EXAMPLE
     - =--clasp-path -c term=path(clingo)= :: clasp path. Accepted
-         values are either a pathname, relative or absolute, or a term
-         of the form path(exe), where exe is the name of the
-         executable. The executable is then searched among the
-         directories specified in the PATH environment variable.
+         values are either a pathname, relative or absolute, specified
+         as a term file(pathname), or a term of the form path(exe),
+         where exe is the name of the executable. The executable is
+         then searched among the directories specified in the PATH
+         environment variable.
 
     - =--clasp-ver -v integer=4= :: clasp version. Accepted values are
          3 and 4. Default is 4, meaning that the version of clasp is 4

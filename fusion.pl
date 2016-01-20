@@ -42,10 +42,12 @@
 :-use_module(utils).
 
 :-use_module(library(clpfd)).
+:-use_module(library(optparse)).
 
 %%	transition to swi-prolog 7.2 strings
 
 :-multifile check:valid_string_goal/1.
+:-multifile error:has_type/2.
 
 check:valid_string_goal(utils:error(S)) :- string(S).
 check:valid_string_goal(utils:error(S,_)) :- string(S).
@@ -54,7 +56,7 @@ check:valid_string_goal(utils:error(S,_)) :- string(S).
 
 opt_spec([
 	  [
-	   opt(clasppath), type(term), default(path(clingo)),
+	   opt(clasppath), default(path(clingo)),
 	   shortflags([c]), longflags(['clasp-path']),
 	   help([ 'clasp path. Accepted values are either a pathname, relative'
 		, 'or absolute, or a term of the form path(exe), where exe'
@@ -115,15 +117,21 @@ opt_spec([
 	  ]
 	 ]).
 
+%%	error library (used by optparse) seem to not define this type,
+%%	resulting in an unusability of the "term" type.
+
+error:has_type(term, X)	  :- compound(X).
+error:has_type(term, X)	  :- atom(X).
+error:has_type(term, X)	  :- atomic(X).
 
 
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	Main predicate
 
 go :-
-	current_prolog_flag(argv, [_|Args]),
-%	 Args = ['--results', arsets, '--clasp-ver', 3, '--clasp-path',
-%	 '/home/wurbel/'test/ex12-1.pl', 'test/ex12-2.pl'],
+%	current_prolog_flag(argv, [_|Args]),
+	 Args = ['--results', arsets, '--clasp-ver', '3', '--clasp-path',
+	 'path(\'/home/wurbel/\')','test/ex12-1.pl', 'test/ex12-2.pl'],
 				% output file (default standard output)
 	nb_setval(file,user_output),
 				% default strategy (default sigma)
