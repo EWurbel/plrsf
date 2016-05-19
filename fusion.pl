@@ -129,9 +129,10 @@ error:has_type(term, X)	  :- atomic(X).
 %%	Main predicate
 
 go :-
-%	current_prolog_flag(argv, [_|Args]),
-	 Args = ['--results', arsets, '--clasp-ver', '3', '--clasp-path',
-	 'path(\'/home/wurbel/\')','test/ex12-1.pl', 'test/ex12-2.pl'],
+	current_prolog_flag(argv, [_|Args]),
+%	 Args = ['--results', arsets, '--clasp-ver', '3',
+%	 '--clasp-path',
+%	 'path(\'/home/wurbel/\')','test/ex12-1.pl', 'test/ex12-2.pl'],
 				% output file (default standard output)
 	nb_setval(file,user_output),
 				% default strategy (default sigma)
