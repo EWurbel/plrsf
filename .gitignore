@@ -12,3 +12,5 @@ doc/*.tex
 doc/*.log
 doc/*.out
 doc/*.toc
+plrsf
+plrsf-webdemo
