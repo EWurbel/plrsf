@@ -1,0 +1,14 @@
+*~
+*#
+zz
+doc/auto
+doc/ltxpng
+doc/*.aux
+doc/*.bbl
+doc/*.blg
+doc/*.fdb_latexmk
+doc/*.fls
+doc/*.tex
+doc/*.log
+doc/*.out
+doc/*.toc
