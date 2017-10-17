@@ -18,13 +18,14 @@
   logic programs with answer set semantics
   \cite{DBLP:conf/ecsqaru/HuePW09,hpw2013}.
 
-  Removed set merging of logic programs consists in the retraction of
+  Removed set merging of logic programs consists in the withdrawal of
   rules from logic programs in order to restore consistency.
 
   Two flavours of consistency of logic programs are considered : in a
   first definition, a program is considered as consistent iff it has
   at least one answer set. In a second definition, a program is
-  considered consistent iff it has at least one SE-model.
+  considered consistent iff it has at least one HT-model
+  \cite{DBLP:conf/nmelp/Pearce96}.
 
   The problem addressed by PLRSF is as follows : considering a profile
   $\{P_1,...,P_n\}$ of logic programs (i.e. a multi-ensemble of logic
@@ -36,16 +37,16 @@
 
 * Installation
 
-  PLRSF is mainly a prolog program written for the swi-prolog compiler
-  in mind. It should not be complicated to port PLRSF on other prolog
+  PLRSF is mainly a prolog program written for the SWI-prolog
+  compiler. It should not be complicated to port PLRSF to other prolog
   systems, at least the command line version of PLRSF[fn:1]. If you
   consider writing a port, please drop me a line.
 
 
   At present, the installation instructions are directed toward
-  swi-prolog installed on a linux system.
+  SWI-prolog installed on a linux system.
 
-  plrsf consist in two different applications :
+  PLRSF consist in two different applications :
 
   - =plrsf= : a command line tool which computes the result of the
     merging of a profile consisting in a set of files.
@@ -54,7 +55,7 @@
 
 [fn:1] The web demo will be trickier to port on other prolog systems, not
 to say almost impossible, as it relies on the http client and server
-support provided by a swi-prolog module.
+support provided by a SWI-prolog module.
 
 
 ** Configuring the installation
@@ -68,7 +69,7 @@ support provided by a swi-prolog module.
    First of all edit the script =run-plrsf-webdemo= and adjust the
    =PLRSF_EXE= variable to point on the path of the =plrsf-webdemo=
    executable. Adjust the =SWI_HOME_DIR= to point to the directory
-   containing swi-prolog runtime libraries. Then, edit the source file
+   containing SWI-prolog runtime libraries. Then, edit the source file
    =webdemo.pl= and modify the following line :
 #+BEGIN_EXAMPLE 
 user:file_search_path(document_root,	'/home/wurbel/src/prolog/plrsf').
@@ -84,15 +85,15 @@ user:file_search_path(document_root,	'/home/wurbel/src/prolog/plrsf').
 
    The script file =build-executable.sh= is provided to build both
    programs =plrsf= and =plrsf-webdemo=. It accepts one option =-e=,
-   which effect is to incorporate swi-prolog runtime libraries in the
+   which effect is to incorporate SWI-prolog runtime libraries in the
    final executable. This is actually needed for 64 bits linux
-   systems. YOu can omit this build option on 32 bit inux systems,
+   systems. You can omit this build option on 32 bit linux systems,
    except is you plan to copy the final executables on a machine on
-   which swi-prolog is not installed.
+   which SWI-prolog is not installed.
 
 ** Installing the executables
 
-   At this time the is no installation script. All you have to do is
+   At present there is no installation script. All you have to do is
    to copy the executable files =plrsf= and =plrsf-webdemo=, and the
    starting script =run-plrsf-webdemo= in a directory appearing in your
    =PATH=.
@@ -106,7 +107,7 @@ user:file_search_path(document_root,	'/home/wurbel/src/prolog/plrsf').
    listen on port 80, as on server machines this port is generally
    handled by a web server software like apache. 
 
-   The following sections describe three different methods enabling an
+   The following sections describe three different methods to enable an
    apache server to relay incoming http requests on port 80 to port
    5000, and to relay back the responses of the PLRSF service.
 
@@ -126,14 +127,20 @@ ProxyPassReverse /pldoc/ http://localhost:4000/pldoc/
 #+END_EXAMPLE
 
 *** TODO Using apache rewrite engine and reverse proxy
+
+    /(Not yet written\dots{})/
+
 *** TODO Using apache VirtualHosts
+
+    /(Not yet written\dots{})/
 
     This is prefferably the best solution, but it needs administrative access.
 
 * Running plrsf
 ** running the command line tool
 
-   The command line tool syntax is as follows (you can print this help by invoking =plrsf --help= at the shell prompt) :
+   The command line tool syntax is as follows (you can print this help
+   by invoking =plrsf --help= at the shell prompt) :
 
 #+BEGIN_EXAMPLE
 plrsf [options] files...
@@ -173,20 +180,42 @@ plrsf [options] files...
          written on standard output.  ATOM: ASP program is written to
          the file whose name is ATOM.
 
-   The files contain the belief profile and the integrity
+   The files must contain the belief profile and the integrity
    constraints. Each file contain a belief base, it must start with a
    fact =kbname/1= asserting the belief base name.
 
    The file containing the integrity constraints must begin with the
    fact =kbname(ic)=.
 
-   For example, suppose we want to run the =archeo= example which is
+   For example, suppose we want to run the =archeo1= example which is
    in the =test= directory. This example contain 3 belief bases and a
    set of integrity constraints. To perform the merging using the
    strategy $\Sigma$ and showing all the possible resulting belief
-   bases, using weak merging, the command is :
+   bases, using weak merging (weak merging is based on HT-models), the
+   command is :
 #+BEGIN_EXAMPLE
-  plrsf -sigma -weak test/archeo-*.pl
+  plrsf --strategy sigma --mode weak test/archeo1-*.pl
+#+END_EXAMPLE
+
+  The output should be something like this :
+
+#+BEGIN_EXAMPLE
+starting plrsf with:
+	Input Files: [archeo1-1.pl,archeo1-2.pl,archeo1-3.pl,archeo1-ic.pl]
+	Merging mode: weak
+	Merging strategy: sigma
+	Results interpretation: all
+	Output: user_output
+==== Base 0 ==========================
+h.
+-d.
+-o.
+h:-not-h.
+-d.
+-o.
+o:-not h.
+do:-d,o.
+-do:-h.
 #+END_EXAMPLE
 
 ** Running the web demo
@@ -196,12 +225,7 @@ plrsf [options] files...
     =run-plrsf-webdemo= script. Then, open a web browser, and browse
     the following url : http://localhost:5000/plrsfdemo/
 
-    The demo is self-documented.
-
-
-\bibliographystyle{plain}
-\bibliography{manual}
- 
+    The demo is self-documented. 
  
 *** Running the web demo through apache
 
@@ -218,4 +242,8 @@ plrsf [options] files...
     The full automation of the starting of the service is out of the
     scope of this documentation at the moment. It requires the
     creation of a starting script for the /init/ service or equivalent
-    (/upstart/, /Ruinit/, etc.).
+    (/upstart/, /Ruinit/, /systemd/ etc.).
+
+
+\bibliographystyle{plain}
+\bibliography{manual}
