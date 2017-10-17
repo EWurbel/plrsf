@@ -1,7 +1,7 @@
 %% -*- prolog -*-
 /*
 
-    Copyright Éric Würbel, LSIS-CNRS UMR7196, (2012-2015)
+    Copyright Éric Würbel, LSIS-CNRS UMR7196, (2012-2017)
 
     <eric.wurbel@lsis.org>
 

@@ -1,4 +1,6 @@
-
+16/10/2017
+	- adding an example in the documentation
+	- bumped licence dates
 
 
 20/01/2015

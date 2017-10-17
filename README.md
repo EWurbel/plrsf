@@ -1,7 +1,7 @@
-plrsf V0.99
-===========
+plrsf V1.0.3
+============
 
-(c) 2012-2015 Éric Würbel, LSIS-CNRS UMR7196
+(c) 2012-2017 Éric Würbel, LSIS-CNRS UMR7196
 <eric.wurbel@lsis.org>
 
 plrsf is an application which implements Removed Set Merging of logic
