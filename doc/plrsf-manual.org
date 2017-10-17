@@ -1,17 +1,16 @@
-#+TITLE: PLRSF V0.99
+#+TITLE: PLRSF V1.0.3
 #+AUTHOR: Éric Würbel
-#+DATE: <2015-05-28 jeu.>
+#+DATE: 2017-10-17
 #+LATEX_CLASS: scrartcl
 #+LATEX_CLASS_OPTIONS: [french,DIV15]
 #+LANGUAGE: fr
-#+LATEX_HEADER: \usepackage[french]{babel}
 #+LATEX_HEADER: \usepackage{lmodern}
 #+LATEX_HEADER: \usepackage{listings}
 #+LATEX_HEADER: \newcommand{\cad}{c.-à-d.{}}
 
 * Introduction
 
-  (c) 2012-2015 Éric Würbel, LSIS-CNRS UMR7296
+  (c) 2012-2017 Éric Würbel, LSIS-CNRS UMR7296
   <eric.wurbel@lsis.org>
 
   PLRSF is an application which implements Removed Set Merging of
@@ -46,7 +45,7 @@
   At present, the installation instructions are directed toward
   SWI-prolog installed on a linux system.
 
-  PLRSF consist in two different applications :
+  PLRSF consist in two different applications:
 
   - =plrsf= : a command line tool which computes the result of the
     merging of a profile consisting in a set of files.
@@ -140,7 +139,7 @@ ProxyPassReverse /pldoc/ http://localhost:4000/pldoc/
 ** running the command line tool
 
    The command line tool syntax is as follows (you can print this help
-   by invoking =plrsf --help= at the shell prompt) :
+   by invoking =plrsf --help= at the shell prompt):
 
 #+BEGIN_EXAMPLE
 plrsf [options] files...
@@ -192,38 +191,40 @@ plrsf [options] files...
    set of integrity constraints. To perform the merging using the
    strategy $\Sigma$ and showing all the possible resulting belief
    bases, using weak merging (weak merging is based on HT-models), the
-   command is :
-#+BEGIN_EXAMPLE
-  plrsf --strategy sigma --mode weak test/archeo1-*.pl
-#+END_EXAMPLE
+   command is:
+   #+BEGIN_EXAMPLE
+   plrsf --strategy sigma --mode weak test/archeo1-*.pl
+   #+END_EXAMPLE
 
-  The output should be something like this :
+  The output should be something like this:
 
-#+BEGIN_EXAMPLE
-starting plrsf with:
-	Input Files: [archeo1-1.pl,archeo1-2.pl,archeo1-3.pl,archeo1-ic.pl]
-	Merging mode: weak
-	Merging strategy: sigma
-	Results interpretation: all
-	Output: user_output
-==== Base 0 ==========================
-h.
--d.
--o.
-h:-not-h.
--d.
--o.
-o:-not h.
-do:-d,o.
--do:-h.
-#+END_EXAMPLE
+  #+BEGIN_EXAMPLE
+  starting plrsf with:
+	  Input Files: [archeo1-1.pl,archeo1-2.pl,archeo1-3.pl,archeo1-ic.pl]
+  	  Merging mode: weak
+	  Merging strategy: sigma
+	  Results interpretation: all
+	  Output: user_output
+  ==== Base 0 ==========================
+  h.
+  -d.
+  -o.
+  h:-not -h.
+  -d.
+  -o.
+  o:-not h.
+  do:-d,o.
+  -do:-h.
+  #+END_EXAMPLE
+
+  For an explanation about the meaning of this example, please refer to section\nbsp{}[[#example]].
 
 ** Running the web demo
 *** Running the web demo locally
 
     To run the web demonstrator on your machine, launch the
     =run-plrsf-webdemo= script. Then, open a web browser, and browse
-    the following url : http://localhost:5000/plrsfdemo/
+    the following url: http://localhost:5000/plrsfdemo/
 
     The demo is self-documented. 
  
@@ -233,7 +234,7 @@ do:-d,o.
     properly, and that your apache web server has been configured to
     relay the requests addressed to the plrsf service to the plrsf
     executable, using one of the three described techniques, running
-    the web demonstrator boils down to :
+    the web demonstrator boils down to:
     - running the =run-plrsf-webdemo= script. This script runs the
       =plrsf-webdemo= daemon. It can be safely detached from the
       terminal ;
@@ -244,6 +245,111 @@ do:-d,o.
     creation of a starting script for the /init/ service or equivalent
     (/upstart/, /Ruinit/, /systemd/ etc.).
 
+* A simple semi-realistic example
+  :PROPERTIES:
+  :CUSTOM_ID: example
+  :END:  
+
+  The =test= directory contains a facticious example inspired by
+  underwater archæology. This example consisting in 4 files :
+  =archeo1-1.pl=, =archeo1-2.pl=, =archeo1-3.pl=, =archeo1-ic.pl=. The
+  files =archeo1-[1-3].pl= correspond to the point of view of three
+  archaeologists about an underwater archaeological site, comprising a
+  vessel containing a cargo of amphoræ. The file =archeo-ic.pl=
+  represents the knowledge of the domain, which cannot be questionned.
+
+  The atoms in the program have the following meaning:
+  - =h= :: means that the cargo is homogeneous, that is, composed by
+    one type of amphora.
+  - =d= :: means that the cargo contains amphoræ of type Dressel-2-4.
+  - =o= :: means that the cargo contains œnochoe, that is, amphoræ
+           containing wine.
+
+
+  The ærchaeological knowledge (which cannot be questionned) states that:
+  - if Dressel-2-4 amphoræ are present on the site, then the cargo
+    cannot be homogeneous.
+  - if Dressel-2-4 amphoræ are present on the site, then the cargo
+    must contain œnochoe.
+
+
+  This results in the =archeo1-ic.pl= program:
+  #+BEGIN_EXAMPLE
+  -h :- d.
+  o :- d.
+  #+END_EXAMPLE
+           
+  The three archæologists have the following beliefs about the site:
+  - Archæologist 1 :: thinks that the cargo is not homogeneous. He
+                      also thinks that there are Dressel-2-4 on the
+                      site, and also œnochoe. This results in the
+                      =archeo1-1.pl= :
+                      #+BEGIN_EXAMPLE
+                      -h.
+                      d.
+                      o.
+                      #+END_EXAMPLE
+  - Archæologist 2 :: thinks that the cargo is homogeneous, that there
+                      is no Dressel-2-4 on the site, nor œnochoe. This
+                      results in the =archeo1-2.pl= :
+                      #+BEGIN_EXAMPLE
+                      h.
+                      -d.
+                      -o.
+                      #+END_EXAMPLE
+  - Archæologist 3 :: thinks that the cargo is homogeneous, unless
+                      there are some reasons prooving that it is
+                      not. He also thinks that there is no Dressel-2-4
+                      on the site, nor œnochoe. Besides, he thinks
+                      that, if the cargo is not proven homogeneous,
+                      then there must be œnochoe. Finally, he thinks
+                      that if the cargo is homogeneous, then there is
+                      no Dressel-2-4. This results in the
+                      =archeo1-3.pl= :
+                      #+BEGIN_EXAMPLE
+                      h :- not -h.
+                      -d.
+                      -o.
+                      o :- not h.
+                      do :- d, o.
+                      -do :- h.
+                      #+END_EXAMPLE
+
+
+  The program consisting in the union of the three points of view of
+  the archæologists with the domain knowledge has no answer set. We
+  have to drop some rules reflecting archæologist's beliefs in order
+  to restore consistency.
+
+  The simplest strategy is to remove as few rules as possible. This is
+  the $\Sigma$ strategy. It leads to a unique solution :
+  #+BEGIN_EXAMPLE
+  $ ../plrsf  archeo1-*.pl
+  starting plrsf with:
+	  Input Files: [archeo1-1.pl,archeo1-2.pl,archeo1-3.pl,archeo1-ic.pl]
+	  Merging mode: strong
+	  Merging strategy: sigma
+	  Results interpretation: all
+	  Output: user_output
+  ==== Base 0 ==========================
+  h.
+  -d.
+  -o.
+  h:-not -h.
+  -d.
+  -o.
+  o:-not h.
+  do:-d,o.
+  -do:-h.
+  #+END_EXAMPLE
+
+  Note the repetition of rules ~-d.~ and ~-o.~, because these are
+  representing beliefs of archæologists 2 and 3.
+
+  This resulting program has a single answer set : ~{-d -o h -do }~,
+  which means that the three archæologists can agree on the
+  consensus that the cargo is homogeneous, and there are no
+  Dressel-2-4 and no œnochoe on the site.
 
 \bibliographystyle{plain}
 \bibliography{manual}
