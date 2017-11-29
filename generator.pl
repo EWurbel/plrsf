@@ -72,19 +72,25 @@
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%	collect_atoms(?Profile,?IAtoms,?OAtoms)
+%%	collect_atoms(?Profile,?IAtoms,?OAtoms, ?IICAtoms, ?OICAtoms)
 %
 %	True if OAtoms is a set of atoms containing
 %       the atoms in IAtoms union the atoms present in
-%	Profile. Atoms are extended atoms in the sense of extended logic
+%	Profile except the ic KB and OICAtoms is a set containing the
+%	atoms in IICAtoms union the atoms present in the ic KB of the
+%	profile. Atoms are extended atoms in the sense of extended logic
 %	programs, i.e. propositionnal atoms or their strong negation.
 %
 %	This predicate is common to the weak and strong modes.
 
-collect_atoms([],A,A).
-collect_atoms([_Name-Rules|KBs],Set,NewSet) :-
+collect_atoms([],A,A,B,B).
+collect_atoms([ic-Rules|KBs],Set,NewSet,ICSet,ICNewSet) :-
+	collect_kb_atoms(Rules,ICSet,ICSet1),
+	collect_atoms(KBs,Set,NewSet,ICSet1,ICNewSet).
+collect_atoms([Name-Rules|KBs],Set,NewSet,ICSet,ICNewSet) :-
+	Name \= ic,
 	collect_kb_atoms(Rules,Set,Set1),
-	collect_atoms(KBs,Set1,NewSet)
+	collect_atoms(KBs,Set1,NewSet,ICSet,ICNewSet)
 	.
 
 collect_kb_atoms((A,B),Set,NewSet) :-
@@ -109,6 +115,15 @@ collect_kb_atoms(A,Set,NewSet) :-
 	atom(A),
 	ord_add_element(Set,A,NewSet)
 	.
+collect_kb_atoms(-A,Set,NewSet) :-
+	compound(A), functor(A,_,AR), AR =\= 0,
+	ord_add_element(Set,-A,NewSet)
+	.
+collect_kb_atoms(A,Set,NewSet) :-
+	compound(A), functor(A,_,AR), AR =\= 0,
+	ord_add_element(Set,A,NewSet)
+	.
+
 
 
 
@@ -137,7 +152,8 @@ collect_kb_atoms(A,Set,NewSet) :-
 %	the merging system.
 
 gen_atoms_htrules(Profile, AtomRules) :-
-	collect_atoms(Profile,[],Atoms),
+	collect_atoms(Profile,[],KBAtoms,[],ICAtoms),
+	ord_union(KBAtoms,ICAtoms,Atoms), % TODO: Check if it is ok
 	gen_atom_htrules_c(Atoms,Rules1),
 	forbid_opposite_litterals(Atoms,Rules2),
 	% represent the "false" atom used for constraints
@@ -486,9 +502,10 @@ negbody('+',S,(not Atom),NewAtom) :-
 %	the merging system.
 
 gen_atoms_asrules(Profile, AtomRules) :-
-	collect_atoms(Profile,[],Atoms),
+	collect_atoms(Profile,[],KBAtoms,[],ICAtoms),
+	ord_union(KBAtoms,ICAtoms,Atoms),
 	gen_atom_asrules_c(Atoms,Rules1),
-	auth_exclusion(Atoms,Rules2),
+	auth_exclusion(KBAtoms,Rules2),
 	conjoin(Rules1,Rules2,Rules3),
 	flatten_conjunction(Rules3,AtomRules)
 	.
@@ -530,9 +547,9 @@ as_forbid_opposite_lits([L|Lits],OppRules) :-
 
 %%	auth_exclusion(?AuthAtoms,?ExclRules)
 %
-%	True if ?AuthAtoms is a conjunction of auth/1 atoms and, for
-%	each atom auth(X), a rule (:- X, auth(X)) is present inthe
-%	conjonction of rules ExclRules.
+%	True if ?AuthAtoms is a list of atoms and, for each atom X in
+%	the list, a rule (:- X, auth(X)) is present inthe conjonction of
+%	rules ExclRules.
 
 auth_exclusion([-A],(:- -A, not auth(neg__(A)))).
 auth_exclusion([A],(:- A, not auth(A))) :- A \= -_.
