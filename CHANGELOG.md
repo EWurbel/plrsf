@@ -1,3 +1,12 @@
+2017-12-08  Eric Würbel  <eric.wurbel@lsis.org>
+
+	* generator.pl
+
+	- bug fixed : in strong mode, exclusion between atoms and their
+	auth/1 counterpart should apply to ALL atoms (so previous fix was
+	a mistake). But then, each rule in IC should also be encoded into
+	their auth/1 version.
+
 2017-11-29  Eric Würbel  <eric.wurbel@lsis.org>
 
 	* generator.pl:
