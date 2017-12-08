@@ -505,7 +505,7 @@ gen_atoms_asrules(Profile, AtomRules) :-
 	collect_atoms(Profile,[],KBAtoms,[],ICAtoms),
 	ord_union(KBAtoms,ICAtoms,Atoms),
 	gen_atom_asrules_c(Atoms,Rules1),
-	auth_exclusion(KBAtoms,Rules2),
+	auth_exclusion(Atoms,Rules2),
 	conjoin(Rules1,Rules2,Rules3),
 	flatten_conjunction(Rules3,AtomRules)
 	.
@@ -648,22 +648,31 @@ gen_as_rules((A,B),Repr) :-
 	gen_as_rules(B,R2),
 	conjoin(R1,R2,Repr)
 	.
-gen_as_rules((H :- B), ASRule) :-
+gen_as_rules((H :- B), ASRules) :-
 	% head :- body rule
 	conjoin((not H),B,RMBody1),
 	flatten_conjunction(RMBody1,RMBody),
-	ASRule = (:- RMBody)
+	ASRule1 = (:- RMBody),
+	auth(H,AuthHead),
+	auth(B,AuthBody),
+	AuthRule = (AuthHead :- AuthBody),
+	conjoin(ASRule1,AuthRule,ASRules)
 	.
-gen_as_rules((:- B), (:- B)).
-gen_as_rules(Fact,(:- not Fact)) :-
+gen_as_rules((:- B), ASRules) :-
+	ASRule1 = (:- B),
+	auth(B,AuthBody),
+	AuthRule = (:- AuthBody),
+	conjoin(ASRule1,AuthRule,ASRules)
+	.
+gen_as_rules(Fact,ASRules) :-
 	Fact \= (_,_),
 	Fact \= (_ :- _),
-	Fact \= (:- _)
+	Fact \= (:- _),
+	ASRule1 = (:- not Fact),
+	auth(Fact,AuthFact),
+	AuthRule = (AuthFact),
+	conjoin(ASRule1,AuthRule,ASRules)
 	.
-
-
-
-
 
 
 %%	auth(?AAtoms,?Atoms)
